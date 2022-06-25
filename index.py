@@ -15,7 +15,6 @@ from dotenv import load_dotenv
 import cogs
 from utils.logging import setup_logging
 
-
 load_dotenv()
 
 TOKEN = os.environ['TOKEN']
