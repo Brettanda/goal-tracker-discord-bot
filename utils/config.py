@@ -27,11 +27,12 @@ DEALINGS IN THE SOFTWARE.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
-from typing import Any, Callable, Dict, Generic, Optional, Type, TypeVar, Union, overload
 import uuid
-import asyncio
+from typing import (Any, Callable, Dict, Generic, Optional, Type, TypeVar,
+                    Union, overload)
 
 _T = TypeVar('_T')
 

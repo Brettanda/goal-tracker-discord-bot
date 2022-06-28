@@ -18,15 +18,13 @@ from typing import TYPE_CHECKING, Any, List, Optional, Sequence, Union
 import discord
 from discord.ext import commands
 from typing_extensions import Annotated
-
+from utils.colours import MessageColors
 from utils.context import Context
 from utils.embed import embed
-from utils.colours import MessageColors
 
 if TYPE_CHECKING:
-    from typing_extensions import Self
-
     from index import AutoShardedBot
+    from typing_extensions import Self
 
 log = logging.getLogger(__name__)
 

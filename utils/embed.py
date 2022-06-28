@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from typing import Collection, Optional, Union, Any
+from typing import Any, Collection, Optional, Union
 
 import discord
 
 from .colours import MessageColors
-
 
 MISSING = discord.utils.MISSING
 
