@@ -5,7 +5,7 @@ import datetime
 import logging
 import sys
 import traceback
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 import aiohttp
 import discord
