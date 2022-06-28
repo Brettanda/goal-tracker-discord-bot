@@ -65,6 +65,7 @@ class AutoShardedBot(commands.AutoShardedBot):
         self.owner_id = self.bot_app_info.team and self.bot_app_info.team.owner_id or self.bot_app_info.owner.id
 
         self.prefixes: Config[str] = Config("prefixes.json", loop=self.loop)
+        self.blacklist: Config[bool] = Config("blacklist.json", loop=self.loop)
 
         for cog in cogs.default:
             path = "cogs."
