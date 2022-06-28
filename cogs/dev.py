@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING, Any, List, Optional, Sequence, Union
 
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
 from typing_extensions import Annotated
 
 from utils.context import Context
@@ -286,8 +285,6 @@ class Dev(commands.Cog, command_attrs=dict(hidden=True)):
         async with ctx.typing():
             stdout, stderr = await self.run_process("git pull")
 
-        load_dotenv()
-
         confirm = await ctx.prompt("Would you like to run pip install upgrade?")
         if confirm:
             pstdout, pstderr = await self.run_process("python -m pip install --upgrade pip && python -m pip install -r requirements.txt --upgrade --no-cache-dir")
@@ -327,11 +324,6 @@ class Dev(commands.Cog, command_attrs=dict(hidden=True)):
         # async with ctx.typing():
         #   await self.bot.reload_cogs()
         # await ctx.reply(embed=embed(title="All cogs have been reloaded"))
-
-    @reload.command("env")
-    async def reload_env(self, ctx: Context):
-        load_dotenv()
-        await ctx.reply(embed=embed(title="Reloaded .env"))
 
     @reload.command("module")
     async def reload_module(self, ctx: Context, *, module: str):
