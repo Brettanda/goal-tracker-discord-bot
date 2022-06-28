@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import psutil
 from discord.ext import commands
 from utils.time import human_timedelta
 
@@ -9,14 +10,12 @@ if TYPE_CHECKING:
     from index import AutoShardedBot
 
 
-class Ping(commands.Cog):
-    """Ping? Pong!"""
-
+class Info(commands.Cog):
     def __init__(self, bot: AutoShardedBot):
         self.bot: AutoShardedBot = bot
 
     def __repr__(self) -> str:
-        return f"<cogs.{self.__cog_name__} content=\"Pong\">"
+        return f"<cogs.{self.__cog_name__}>"
 
     @commands.hybrid_command(name="ping")
     async def ping(self, ctx: commands.Context):
@@ -35,4 +34,4 @@ class Ping(commands.Cog):
 
 
 async def setup(bot: AutoShardedBot):
-    await bot.add_cog(Ping(bot))
+    await bot.add_cog(Info(bot))
