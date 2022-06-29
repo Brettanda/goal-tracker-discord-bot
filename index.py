@@ -5,7 +5,8 @@ import datetime
 import logging
 import sys
 import traceback
-from typing import TYPE_CHECKING, Any
+from collections import Counter, defaultdict
+from typing import TYPE_CHECKING, Any, Optional
 
 import aiohttp
 import asyncpg
@@ -15,12 +16,13 @@ from discord.ext import commands
 import cogs
 import config
 from utils.config import Config
+from utils.context import Context
+from utils.db import Table
 from utils.logging import setup_logging
 from utils.time import human_timedelta
-from utils.db import Table
 
 if TYPE_CHECKING:
-    from utils.context import Context
+    from cogs.reminder import Reminder
 
 
 log = logging.getLogger(__name__)
@@ -202,6 +204,10 @@ class AutoShardedBot(commands.AutoShardedBot):
     @property
     def config(self):
         return __import__('config')
+
+    @property
+    def reminder(self) -> Optional[Reminder]:
+        return self.get_cog("Reminder")  # type: ignore
 
 
 async def main(bot):
