@@ -64,6 +64,9 @@ class AutoShardedBot(commands.AutoShardedBot):
         # shows the last attempted IDENTIFYs and RESUMEs
         self.resumes: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
         self.identifies: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
+
+        self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
+
         log.info(
             f"Cluster Starting {kwargs.get('shard_ids', None)}, {kwargs.get('shard_count', 1)}")
 
@@ -194,6 +197,25 @@ class AutoShardedBot(commands.AutoShardedBot):
             return
 
         await self.process_commands(msg)
+
+    async def process_commands(self, message: discord.Message) -> None:
+        ctx = await self.get_context(message, cls=Context)
+
+        if ctx.command is None:
+            return
+
+        current = message.created_at.replace(tzinfo=datetime.timezone.utc).timestamp()
+        bucket = self.spam_control.get_bucket(message, current)
+        retry_after = bucket and bucket.update_rate_limit(current)
+        author_id = message.author.id
+
+        if retry_after and author_id != self.owner_id:
+            return
+
+        try:
+            await self.invoke(ctx)
+        finally:
+            await ctx.release()
 
     async def close(self) -> None:
         await super().close()
