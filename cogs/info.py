@@ -81,7 +81,7 @@ class Info(commands.Cog):
     @commands.hybrid_command(name="uptime")
     async def uptime(self, ctx: Context):
         """Uptime!"""
-        await ctx.send(f"Uptime: **{self.get_bot_uptime}**")
+        await ctx.send(f"Uptime: **{self.get_bot_uptime()}**")
 
     @cached_property
     def link(self):
