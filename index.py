@@ -38,6 +38,9 @@ class AutoShardedBot(commands.AutoShardedBot):
     user: discord.ClientUser
     pool: asyncpg.Pool
     uptime: datetime.datetime
+    command_stats: Counter[str]
+    socket_stats: Counter[str]
+    gateway_handler: Any
 
     def __init__(self, **kwargs):
         super().__init__(
@@ -55,6 +58,10 @@ class AutoShardedBot(commands.AutoShardedBot):
 
         self.ready = False
 
+        # shard_id: List[datetime.datetime]
+        # shows the last attempted IDENTIFYs and RESUMEs
+        self.resumes: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
+        self.identifies: defaultdict[int, list[datetime.datetime]] = defaultdict(list)
         log.info(
             f"Cluster Starting {kwargs.get('shard_ids', None)}, {kwargs.get('shard_count', 1)}")
 
@@ -82,6 +89,23 @@ class AutoShardedBot(commands.AutoShardedBot):
     @property
     def owner(self) -> discord.User:
         return self.bot_app_info.owner
+
+    def _clear_gateway_data(self) -> None:
+        one_week_ago = discord.utils.utcnow() - datetime.timedelta(days=7)
+        for _, dates in self.identifies.items():
+            to_remove = [index for index, dt in enumerate(dates) if dt < one_week_ago]
+            for index in reversed(to_remove):
+                del dates[index]
+
+        for _, dates in self.resumes.items():
+            to_remove = [index for index, dt in enumerate(dates) if dt < one_week_ago]
+            for index in reversed(to_remove):
+                del dates[index]
+
+    async def before_identify_hook(self, shard_id: int, *, initial: bool):
+        self._clear_gateway_data()
+        self.identifies[shard_id].append(discord.utils.utcnow())
+        await super().before_identify_hook(shard_id, initial=initial)
 
     async def on_command_error(self, ctx: Context, error: commands.CommandError) -> None:
         if hasattr(ctx.command, 'on_error'):
@@ -143,7 +167,24 @@ class AutoShardedBot(commands.AutoShardedBot):
         if not hasattr(self, "uptime"):
             self.uptime = discord.utils.utcnow()
 
-        log.info(f"Logged in as #{self.user}")
+        log.info(f"Apart of {len(self.guilds)} guilds")
+
+    async def on_shard_connect(self, shard_id: int):
+        log.info(f"Shard #{shard_id} has connected")
+
+    async def on_shard_ready(self, shard_id: int):
+        shard = self.get_shard(shard_id)
+        log.info(f"Logged in as #{shard_id} {self.user}! - {shard and shard.latency*1000:,.0f} ms")
+
+    async def on_shard_resumed(self, shard_id: int):
+        log.info(f"Shard #{shard_id} has resumed")
+        self.resumes[shard_id].append(discord.utils.utcnow())
+
+    async def on_shard_disconnect(self, shard_id: int):
+        log.info(f"Shard #{shard_id} has disconnected")
+
+    async def on_shard_reconnect(self, shard_id: int):
+        log.info(f"Shard #{shard_id} has reconnected")
 
     async def on_message(self, msg: discord.Message):
         if msg.author.bot:
