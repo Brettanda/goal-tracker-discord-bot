@@ -30,8 +30,8 @@ log = logging.getLogger(__name__)
 
 def get_prefix(bot: AutoShardedBot, message: discord.Message):
     if message.guild is not None:
-        return commands.when_mentioned_or(bot.prefixes.get(message.guild.id, "?"))(bot, message)
-    return commands.when_mentioned_or("?")(bot, message)
+        return commands.when_mentioned_or(bot.prefixes.get(message.guild.id, config.default_prefix))(bot, message)
+    return commands.when_mentioned_or(config.default_prefix)(bot, message)
 
 
 class AutoShardedBot(commands.AutoShardedBot):
