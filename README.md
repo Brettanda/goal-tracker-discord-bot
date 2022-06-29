@@ -12,6 +12,8 @@ A template for discord.py v2.0 bots with cogs.
 
 ```python
 token = 'YOUR_TOKEN_HERE'
+default_prefix = 'gt!'
+postgresql = 'postgresql://user:password@host/database'
 ```
 
 2. Setup venv

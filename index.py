@@ -8,6 +8,7 @@ import traceback
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
+import asyncpg
 import discord
 from discord.ext import commands
 
@@ -16,6 +17,7 @@ import config
 from utils.config import Config
 from utils.logging import setup_logging
 from utils.time import human_timedelta
+from utils.db import Table
 
 if TYPE_CHECKING:
     from utils.context import Context
@@ -34,6 +36,7 @@ class AutoShardedBot(commands.AutoShardedBot):
     """Friday is a discord bot that is designed to be a flexible and easy to use bot."""
 
     user: discord.ClientUser
+    pool: asyncpg.Pool
     uptime: datetime.datetime
 
     def __init__(self, **kwargs):
@@ -63,6 +66,8 @@ class AutoShardedBot(commands.AutoShardedBot):
 
         self.bot_app_info = await self.application_info()
         self.owner_id = self.bot_app_info.team and self.bot_app_info.team.owner_id or self.bot_app_info.owner.id
+
+        self.pool = await Table.create_pool(config.postgresql)
 
         self.prefixes: Config[str] = Config("prefixes.json", loop=self.loop)
         self.blacklist: Config[bool] = Config("blacklist.json", loop=self.loop)
@@ -162,8 +167,41 @@ async def main(bot):
     async with bot:
         await bot.start(config.token)
 
+
+def db_init():
+    import importlib
+    run = asyncio.get_event_loop().run_until_complete
+    try:
+        run(Table.create_pool(config.postgresql))
+    except Exception as e:
+        print(e)
+        print("Failed to create database pool")
+        sys.exit(1)
+
+    for ext in [f"cogs.{e}" for e in cogs.default]:
+        try:
+            importlib.import_module(ext)
+        except Exception:
+            print(f"Failed to import {ext}")
+            traceback.print_exc()
+            sys.exit(1)
+
+    for table in Table.all_tables():
+        try:
+            run(table.create())
+        except Exception:
+            print(f"Failed to create table {table}")
+            traceback.print_exc()
+            sys.exit(1)
+    asyncio.get_event_loop().close()
+
+
 if __name__ == "__main__":
     print(f"Python version: {sys.version}")
+
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--init":
+            db_init()
 
     bot = AutoShardedBot()
     try:
