@@ -96,6 +96,9 @@ class AutoShardedBot(commands.AutoShardedBot):
     def owner(self) -> discord.User:
         return self.bot_app_info.owner
 
+    async def get_context(self, origin: discord.Message | discord.Interaction, /, *, cls=None) -> Context:
+        return await super().get_context(origin, cls=cls or Context)
+
     def _clear_gateway_data(self) -> None:
         one_week_ago = discord.utils.utcnow() - datetime.timedelta(days=7)
         for _, dates in self.identifies.items():
