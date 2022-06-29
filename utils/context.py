@@ -102,6 +102,15 @@ class Context(commands.Context):
         return None
 
     @property
+    def timezone(self):
+        if self.guild is not None:
+            try:
+                return self.bot.timezones[self.author.id]
+            except KeyError:
+                return self.bot.timezones.get(self.guild.id, datetime.timezone.utc)
+        return self.bot.timezones.get(self.author.id, datetime.timezone.utc)
+
+    @property
     def session(self) -> ClientSession:
         return self.bot.session
 

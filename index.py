@@ -79,6 +79,7 @@ class AutoShardedBot(commands.AutoShardedBot):
         self.pool = await Table.create_pool(config.postgresql)
 
         self.prefixes: Config[str] = Config("prefixes.json", loop=self.loop)
+        self.timezones: Config[str] = Config("timezones.json", loop=self.loop)
         self.blacklist: Config[bool] = Config("blacklist.json", loop=self.loop)
 
         for cog in cogs.default:
@@ -118,7 +119,7 @@ class AutoShardedBot(commands.AutoShardedBot):
         #     return
 
         # ignored = (commands.CommandNotFound, commands.NotOwner, )
-        just_send = (commands.DisabledCommand, commands.MissingPermissions, commands.RoleNotFound, commands.MaxConcurrencyReached, asyncio.TimeoutError, commands.BadArgument)  # , exceptions.RequiredTier)
+        just_send = (commands.DisabledCommand, commands.MissingPermissions, commands.RoleNotFound, commands.MaxConcurrencyReached, asyncio.TimeoutError, commands.BadArgument, commands.NoPrivateMessage)  # , exceptions.RequiredTier)
         error = getattr(error, 'original', error)
 
         # if isinstance(error, ignored) or (hasattr(error, "log") and error and error.log is False):
@@ -142,7 +143,7 @@ class AutoShardedBot(commands.AutoShardedBot):
         # elif isinstance(error, (exceptions.RequiredTier, exceptions.NotInSupportServer)):
         #     await ctx.send(str(error), ephemeral=True)
         elif isinstance(error, commands.CheckFailure):
-            log.warn(f"{ctx.guild and ctx.guild.id or 'Private Message'} {ctx.channel} {ctx.author} {error}")
+            log.warning(f"{ctx.guild and ctx.guild.id or 'Private Message'} {ctx.channel} {ctx.author} {error}")
         elif isinstance(error, commands.NoPrivateMessage):
             await ctx.send("This command does not work in non-server text channels", ephemeral=True)
         elif isinstance(error, OverflowError):
