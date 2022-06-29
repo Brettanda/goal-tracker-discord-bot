@@ -1,7 +1,7 @@
 aiohttp==3.7.4
 python-dateutil==2.8.1
 parsedatetime==2.6
-numpy==1.19.5
+numpy==1.22.0
 asyncpg==0.23.0
 pytz
 psutil
