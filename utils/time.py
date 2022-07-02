@@ -104,43 +104,44 @@ class ShortTime:
                              (?:(?P<seconds>[0-9]{1,5})(?:seconds?|s))?    # e.g. 15s
                           """, re.VERBOSE)
 
-    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None):
+    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None, timezone: datetime.tzinfo = datetime.timezone.utc):
         match = self.compiled.fullmatch(argument)
         if match is None or not match.group(0):
             raise commands.BadArgument('invalid time provided')
 
         data = {k: int(v) for k, v in match.groupdict(default=0).items()}
-        now = now or datetime.datetime.now(datetime.timezone.utc)
-        self.dt = now + relativedelta(**data)
+        now = now or datetime.datetime.now(timezone)
+        self.dt = (now + relativedelta(**data)).astimezone(datetime.timezone.utc)
 
     @classmethod
     async def convert(cls, ctx: Context, argument: str) -> Self:
-        return cls(argument, now=ctx.message.created_at)
+        return cls(argument, now=ctx.message.created_at, timezone=ctx.timezone)
 
 
 class HumanTime:
     calendar = pdt.Calendar(version=pdt.VERSION_CONTEXT_STYLE)
 
-    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None):
+    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None, timezone: datetime.tzinfo = datetime.timezone.utc):
         now = now or datetime.datetime.utcnow()
+        now = now.astimezone(timezone)
         dt, status = self.calendar.parseDT(argument, sourceTime=now)
         if not status.hasDateOrTime:
-            raise commands.BadArgument('invalid time provided, try e.g. "tomorrow" or "3 days"')
+            raise commands.BadArgument('invalid time provided, try e.g. "2pm" or "1 hour from now"')
 
         if not status.hasTime:
             # replace it with the current time
             dt = dt.replace(hour=now.hour, minute=now.minute, second=now.second, microsecond=now.microsecond)
 
-        self.dt = dt
+        self.dt = dt = dt.astimezone(timezone)
         self._past = dt < now
 
     @classmethod
     async def convert(cls, ctx: Context, argument: str) -> Self:
-        return cls(argument, now=ctx.message.created_at)
+        return cls(argument, now=ctx.message.created_at, timezone=ctx.timezone)
 
 
 class Time(HumanTime):
-    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None):
+    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None, timezone: datetime.tzinfo = datetime.timezone.utc):
         try:
             o = ShortTime(argument, now=now)
         except Exception:
@@ -151,16 +152,16 @@ class Time(HumanTime):
 
 
 class FutureTime(Time):
-    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None):
-        super().__init__(argument, now=now)
+    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None, timezone: datetime.tzinfo = datetime.timezone.utc):
+        super().__init__(argument, now=now, timezone=timezone)
 
         if self._past:
             raise commands.BadArgument('this time is in the past')
 
 
 class TimeoutTime(FutureTime):
-    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None):
-        super().__init__(argument, now=now)
+    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None, timezone: datetime.tzinfo = datetime.timezone.utc):
+        super().__init__(argument, now=now, timezone=timezone)
 
         now = now or datetime.datetime.now(datetime.timezone.utc)
 
@@ -195,10 +196,10 @@ class FriendlyTimeResult:
 
 class UserFriendlyTime(commands.Converter):
     def __init__(self, converter: Optional[Union[type[commands.Converter], commands.Converter]] = None, *, default: Any = None):
-        if isinstance(converter, type) and issubclass(converter, commands.Converter):
+        if isinstance(converter, type) and issubclass(converter, commands.Converter):  # type: ignore
             converter = converter()
 
-        if converter is not None and not isinstance(converter, commands.Converter):
+        if converter is not None and not isinstance(converter, commands.Converter):  # type: ignore
             raise TypeError("converter must be a subclass of Converter")
 
         self.converter: commands.Converter = converter  # type: ignore  # It doesn't understand this narrowing
@@ -208,7 +209,7 @@ class UserFriendlyTime(commands.Converter):
         try:
             calendar = HumanTime.calendar
             regex = ShortTime.compiled
-            now = ctx.message.created_at
+            now = ctx.message.created_at.astimezone(ctx.timezone)
 
             match = regex.match(argument)
             if match is not None and match.group(0):
@@ -239,6 +240,7 @@ class UserFriendlyTime(commands.Converter):
 
             # first the first two cases:
             dt, status, begin, end, dt_string = elements[0]
+            dt = dt.astimezone(ctx.message.created_at.tzinfo)
 
             if not status.hasDateOrTime:
                 raise commands.BadArgument('Invalid time provided, try e.g. "tomorrow" or "3 days".')

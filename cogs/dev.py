@@ -30,6 +30,7 @@ from typing_extensions import Annotated
 from utils.colours import MessageColors
 from utils.context import Context
 from utils.embed import embed
+from utils import time
 
 if TYPE_CHECKING:
     from index import AutoShardedBot
@@ -389,6 +390,10 @@ class Dev(commands.Cog, command_attrs=dict(hidden=True)):
                 seperator = "/"
             shutil.copy(f"{thispath}{seperator}logging.log", f"{thispath}{seperator}logging-send.log")
         await ctx.reply(file=discord.File(fp=f"{thispath}{seperator}logging-send.log", filename="logging.log"))
+
+    @dev.command("time")
+    async def time(self, ctx: Context, *, _time: Annotated[time.FriendlyTimeResult, time.UserFriendlyTime(commands.clean_content, default="...")]):
+        await ctx.send(f"{time.format_dt(_time.dt)} ({time.format_dt(_time.dt, style='R')}) `{time.format_dt(_time.dt)}` `{_time.dt.tzname()}` `{ctx._timezone_name}` {ctx.message.created_at.astimezone(ctx.timezone).strftime('%I:%M:%S %p')}")
 
     @dev.command(name="sudo")
     async def sudo(self, ctx: Context, channel: Optional[discord.TextChannel], user: Union[discord.Member, discord.User], *, command: str):

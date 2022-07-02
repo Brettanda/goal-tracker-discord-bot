@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any, Generator, Optional, Union
 
 import discord
 import datetime
+import pytz
 from discord.ext import commands
 
 if TYPE_CHECKING:
@@ -102,13 +103,17 @@ class Context(commands.Context):
         return None
 
     @property
-    def timezone(self):
+    def _timezone_name(self) -> str:
         if self.guild is not None:
             try:
                 return self.bot.timezones[self.author.id]
             except KeyError:
                 return self.bot.timezones.get(self.guild.id, datetime.timezone.utc)
         return self.bot.timezones.get(self.author.id, datetime.timezone.utc)
+
+    @property
+    def timezone(self) -> datetime.tzinfo:
+        return pytz.timezone(self._timezone_name)
 
     @property
     def session(self) -> ClientSession:
