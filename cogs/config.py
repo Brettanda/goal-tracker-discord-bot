@@ -7,6 +7,7 @@ import discord
 import pytz
 from discord import app_commands
 from discord.ext import commands
+from utils.fuzzy import autocomplete as fuzzy_autocomplete
 
 if TYPE_CHECKING:
     from index import AutoShardedBot
@@ -32,9 +33,10 @@ class Timezone(commands.Converter, app_commands.Transformer):
             raise commands.BadArgument(f"Unknown timezone: {value}")
 
     @classmethod
-    async def autocomplete(cls, interaction: discord.Interaction, value: str) -> list[app_commands.Choice[str]]:
+    async def autocomplete(cls, interaction: discord.Interaction, value: str | float | int) -> list[app_commands.Choice[str | float | int]]:
         timezones = pytz.all_timezones
-        return [app_commands.Choice(name=timezone, value=timezone) for timezone in timezones if timezone.lower().startswith(value.lower())][:25]
+        choices = [app_commands.Choice(name=timezone, value=timezone) for timezone in timezones]
+        return fuzzy_autocomplete(choices, value)
 
 
 class Config(commands.Cog, command_attrs=dict(extras={"permissions": ["manage_guild"]})):
