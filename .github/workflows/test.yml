@@ -29,7 +29,9 @@ jobs:
       - uses: actions/cache@v3
         id: cache
         with:
-          path: ~/venv
+          path: |
+            ${{ env.pythonLocation}}/lib/python${{ matrix.python-version }}/site-packages/*
+            ~/venv
           key: ${{ matrix.os }}-pip-${{ env.cache-name }}-${{ hashfiles('requirements.txt') }}
 
       - name: Install dependencies
