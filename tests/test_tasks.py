@@ -26,7 +26,7 @@ async def test_task_from_past():
         "completed": False,
         "last_reset": date
     }
-    task = await Task.from_record(record)
+    task = Task(record=record)
     assert task.id == 1
     assert task.user_id == 215227961048170496
     target = date + delta  # tomorrow
@@ -51,7 +51,7 @@ async def test_task_from_future():
         "completed": False,
         "last_reset": date
     }
-    task = await Task.from_record(record)
+    task = Task(record=record)
     assert task.id == 1
     assert task.user_id == 215227961048170496
     target = date
