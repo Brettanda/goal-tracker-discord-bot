@@ -30,14 +30,14 @@ jobs:
         with:
           path: |
             ${{ env.pythonLocation}}/lib/python${{ matrix.python-version }}/site-packages/*
-            venv
+            ${{ github.workspace }}/venv
           key: ${{ matrix.os }}-pip-${{ env.cache-name }}-${{ hashfiles('requirements.txt') }}
 
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          python -m venv venv
-          . venv/bin/activate
+          python -m venv ${{ github.workspace }}/venv
+          . ${{ github.workspace }}/venv/bin/activate
           python -m pip install --upgrade pip
           pip install flake8
           pip install -U -r requirements.txt
