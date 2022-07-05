@@ -30,6 +30,46 @@ if TYPE_CHECKING:
     from .context import Context
 
 
+class Aware:
+    """timezone aware"""
+    def __new__(cls, *args, **kwargs):
+        if 'tzinfo' not in kwargs:
+            raise TypeError('tzinfo not passed into Aware Datetime (ADT) object')
+        return super().__new__(cls, *args, **kwargs)
+
+
+class Naive:
+    """non-aware"""
+    def __new__(cls, *args, **kwargs):
+        if 'tzinfo' in kwargs:
+            raise TypeError('tzinfo passed into Naive Datetime (NDT) object')
+        return super().__new__(cls, *args, **kwargs)
+
+
+class ADT(datetime.datetime, Aware):
+    """timezone aware datetime"""
+    @classmethod
+    def combine(cls, date: Self, time: AT, tzinfo: datetime.timezone | None = ...) -> Self:
+        return super().combine(date, time, tzinfo)  # type: ignore
+
+
+class AT(datetime.time, Aware):
+    """timezone aware time"""
+    pass
+
+
+class NDT(datetime.datetime, Naive):
+    """non-aware datetime"""
+    @classmethod
+    def combine(cls, date: Self, time: NT) -> Self:
+        return super().combine(date, time)  # type: ignore
+
+
+class NT(datetime.time, Naive):
+    """non-aware time"""
+    pass
+
+
 def human_timedelta(dt: datetime.datetime, *, source: Optional[datetime.datetime] = None, accuracy: Optional[int] = 3, brief: bool = False, suffix: bool = True) -> str:
     now = source or datetime.datetime.now(datetime.timezone.utc)
     if dt.tzinfo is None:
@@ -170,12 +210,12 @@ class TimeoutTime(FutureTime):
 
 
 class FriendlyTimeResult:
-    dt: datetime.datetime
+    dt: ADT
     arg: str
 
     __slots__ = ('dt', 'arg')
 
-    def __init__(self, dt: datetime.datetime):
+    def __init__(self, dt: ADT):
         self.dt = dt
         self.arg = ""
 
@@ -209,13 +249,14 @@ class UserFriendlyTime(commands.Converter):
         try:
             calendar = HumanTime.calendar
             regex = ShortTime.compiled
-            now = ctx.message.created_at.astimezone(ctx.timezone)
+            now: ADT = ctx.message.created_at.astimezone(ctx.timezone)  # type: ignore
 
             match = regex.match(argument)
             if match is not None and match.group(0):
                 data = {k: int(v) for k, v in match.groupdict(default=0).items()}
                 remaining = argument[match.end():].strip()
-                result = FriendlyTimeResult(now + relativedelta(**data))
+                later: ADT = now + relativedelta(**data)  # type: ignore
+                result = FriendlyTimeResult(later)
                 await result.ensure_constraints(ctx, self, now, remaining)
                 return result
 

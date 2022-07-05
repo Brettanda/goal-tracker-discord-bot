@@ -22,6 +22,7 @@ from typing_extensions import Annotated
 from utils import time, db
 from utils.embed import embed
 from utils.colours import MessageColors
+from utils.time import ADT, NDT
 
 if TYPE_CHECKING:
     from index import AutoShardedBot
@@ -49,15 +50,15 @@ class Timer:
         self.args: Sequence[Any] = extra.get("args", [])
         self.kwargs: dict[str, Any] = extra.get("kwargs", {})
         self.event: str = record["event"]
-        self.created_at: datetime.datetime = record["created"]
-        self.expires: datetime.datetime = record["expires"]
+        self.created_at: NDT = record["created"]
+        self.expires: NDT = record["expires"]
 
     @classmethod
     def temporary(
             cls,
             *,
-            expires: datetime.datetime,
-            created: datetime.datetime,
+            expires: NDT,
+            created: NDT,
             event: str,
             args: Sequence[Any],
             kwargs: Dict[str, Any]
@@ -142,7 +143,7 @@ class Reminder(commands.Cog):
         try:
             while not self.bot.is_closed():
                 timer = self._current_timer = await self.wait_for_active_timer(days=40)
-                now = datetime.datetime.utcnow()
+                now: NDT = datetime.datetime.utcnow()  # type: ignore
 
                 if timer.expires >= now:
                     to_sleep = (timer.expires - now).total_seconds()
@@ -159,7 +160,7 @@ class Reminder(commands.Cog):
         event_name = f'{timer.event}_timer_complete'
         self.bot.dispatch(event_name, timer)
 
-    async def create_timer(self, when: datetime.datetime, event: str, *args: Any, **kwargs: Any) -> Timer:
+    async def create_timer(self, when: NDT | ADT, event: str, *args: Any, **kwargs: Any) -> Timer:
         try:
             connection = kwargs.pop('connection')
         except KeyError:
@@ -168,13 +169,13 @@ class Reminder(commands.Cog):
         try:
             now = kwargs.pop('created')
         except KeyError:
-            now = discord.utils.utcnow()
+            now = discord.utils.utcnow()  # type: ignore
 
-        when = when.astimezone(datetime.timezone.utc).replace(tzinfo=None)
-        now = now.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+        when_to: NDT = when.astimezone(datetime.timezone.utc).replace(tzinfo=None)  # type: ignore
+        now: NDT = now.astimezone(datetime.timezone.utc).replace(tzinfo=None)
 
-        timer = Timer.temporary(event=event, args=args, kwargs=kwargs, expires=when, created=now)
-        delta = (when - now).total_seconds()
+        timer = Timer.temporary(event=event, args=args, kwargs=kwargs, expires=when_to, created=now)
+        delta = (when_to - now).total_seconds()
         if delta <= 60:
             # a shortcut for small timers
             self.bot.loop.create_task(self.short_timer_optimisation(delta, timer))
@@ -185,14 +186,14 @@ class Reminder(commands.Cog):
                   RETURNING id;
               """
 
-        row = await connection.fetchrow(query, event, {"args": args, "kwargs": kwargs}, when, now)
-        log.debug(f"PostgreSQL Query: \"{query}\" + {event, {'args': args, 'kwargs': kwargs}, when, now}")
+        row = await connection.fetchrow(query, event, {"args": args, "kwargs": kwargs}, when_to, now)
+        log.debug(f"PostgreSQL Query: \"{query}\" + {event, {'args': args, 'kwargs': kwargs}, when_to, now}")
         timer.id = row[0]
 
         if delta <= (86400 * 40):  # 40 days
             self._have_data.set()
 
-        if self._current_timer and when < self._current_timer.expires:
+        if self._current_timer and when_to < self._current_timer.expires:
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.dispatch_timers())
 
