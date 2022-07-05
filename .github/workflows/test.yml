@@ -26,14 +26,18 @@ jobs:
           cache: 'pip'
 
       - uses: actions/cache@v3
-        id: cache-pipenv
+        id: cache
         with:
-          path: ~/.local/share/virtualenvs
+          path: |
+            ${{ env.pythonLocation}}/lib/python${{ matrix.python-version }}/site-packages/*
+            ~/venv
           key: ${{ matrix.os }}-pip-${{ env.cache-name }}-${{ hashfiles('requirements.txt') }}
 
       - name: Install dependencies
-        if: steps.cache-pipenv.outputs.cache-hit != 'true'
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
+          python -m venv ~/venv
+          . ~/venv/bin/activate
           pip install pytest pytest-asyncio
           pip install -U -r requirements.txt
 
@@ -45,4 +49,5 @@ jobs:
       - name: Run tests
         shell: bash
         run: |
+          . ~/venv/bin/activate
           PYTHONPATH="$(pwd)" pytest -vs
