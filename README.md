@@ -14,6 +14,7 @@ A template for discord.py v2.0 bots with cogs.
 token = 'YOUR_TOKEN_HERE'
 default_prefix = 'gt!'
 postgresql = 'postgresql://user:password@host/database'
+bot_stat_webhook = ('[webhook_id]', '[webhook_token]')
 ```
 
 2. Setup venv

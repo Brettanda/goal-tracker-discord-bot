@@ -234,8 +234,8 @@ class Stats(commands.Cog, command_attrs=dict(hidden=True)):
 
     @discord.utils.cached_property
     def webhook(self):
-        wh_id, wh_token = os.environ["WEBHOOKINFOID"], os.environ["WEBHOOKINFOTOKEN"]
-        return discord.Webhook.partial(id=wh_id, token=wh_token, session=self.bot.session)  # type: ignore
+        wh_id, wh_token = self.bot.config.bot_stat_webhook
+        return discord.Webhook.partial(id=wh_id, token=wh_token, session=self.bot.session)
 
     async def register_command(self, ctx: Context):
         if ctx.command is None:
