@@ -50,4 +50,4 @@ jobs:
         shell: bash
         run: |
           . ~/venv/bin/activate
-          PYTHONPATH="$(pwd)" pytest -vs
+          pytest
