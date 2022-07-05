@@ -1,24 +1,19 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pytest
-from utils.time import TimeOfDay, Interval, HumanTime, expected_times_of_day, expected_intervals
-
-
-if TYPE_CHECKING:
-    ...
+from utils.time import (HumanTime, Interval, TimeOfDay, expected_intervals,
+                        expected_times_of_day)
 
 pytestmark = pytest.mark.asyncio
 
 
-async def test_interval(event_loop):
+async def test_interval():
     for e in expected_intervals:
         interval = Interval(e).interval
         assert interval
 
 
-async def test_time_of_day(event_loop):
+async def test_time_of_day():
     for e in expected_times_of_day:
         time = TimeOfDay(e).time
         if ":" in e:
@@ -39,7 +34,7 @@ async def test_time_of_day(event_loop):
             assert time.minute == int(minute)
 
 
-async def test_human_time(event_loop):
+async def test_human_time():
     for e in expected_times_of_day:
         assert HumanTime(e).dt
         assert HumanTime(e).dt_local
