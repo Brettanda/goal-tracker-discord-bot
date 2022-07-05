@@ -8,6 +8,7 @@ on:
 jobs:
   type-checking:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -24,7 +25,14 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
 
+      - uses: actions/cache@v3
+        id: cache-pipenv
+        with:
+          path: ~/.local/share/virtualenvs
+          key: ${{ matrix.os }}-pip-${{ env.cache-name }}-${{ hashfiles('requirements.txt') }}
+
       - name: Install dependencies
+        if: steps.cache-pipenv.outputs.cache-hit != 'true'
         run: |
           pip install pytest pytest-asyncio
           pip install -U -r requirements.txt
