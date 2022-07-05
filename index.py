@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any, Optional
 import aiohttp
 import asyncpg
 import discord
+import pytz
 from discord.ext import commands
 
 import cogs
@@ -171,6 +172,17 @@ class AutoShardedBot(commands.AutoShardedBot):
             #     log.error(f"ERROR while ignoring exception in command {ctx.command}: {e}")
             # else:
             #     log.info("ERROR sent")
+
+    def get_timezone_name(self, user_id: int, guild_id: Optional[int] = None) -> str:
+        if guild_id is not None:
+            try:
+                return self.timezones[user_id]
+            except KeyError:
+                return self.timezones.get(guild_id, 'UTC')
+        return self.timezones.get(user_id, 'UTC')
+
+    def get_timezone(self, user_id: int, guild: Optional[int] = None) -> datetime.tzinfo:
+        return pytz.timezone(self.get_timezone_name(user_id, guild))
 
     async def on_ready(self):
         if not hasattr(self, "uptime"):

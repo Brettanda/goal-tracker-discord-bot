@@ -104,16 +104,11 @@ class Context(commands.Context):
 
     @property
     def _timezone_name(self) -> str:
-        if self.guild is not None:
-            try:
-                return self.bot.timezones[self.author.id]
-            except KeyError:
-                return self.bot.timezones.get(self.guild.id, datetime.timezone.utc)
-        return self.bot.timezones.get(self.author.id, datetime.timezone.utc)
+        return self.bot.get_timezone_name(self.author.id, self.guild and self.guild.id)
 
     @property
     def timezone(self) -> datetime.tzinfo:
-        return pytz.timezone(self._timezone_name)
+        return self.bot.get_timezone(self.author.id, self.guild and self.guild.id)
 
     @property
     def session(self) -> ClientSession:
