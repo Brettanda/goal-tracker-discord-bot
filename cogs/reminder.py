@@ -17,12 +17,16 @@ from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence
 
 import asyncpg
 import discord
-from discord.ext import commands
+from discord import app_commands
+from discord.ext import commands, menus
 from typing_extensions import Annotated
+from utils.cache import cache
+from utils import paginator
 from utils import time, db
 from utils.embed import embed
 from utils.colours import MessageColors
 from utils.time import ADT, NDT
+from utils.fuzzy import autocomplete
 
 if TYPE_CHECKING:
     from index import AutoShardedBot
@@ -38,6 +42,30 @@ class Reminders(db.Table):
     created = db.Column("created timestamp NOT NULL DEFAULT (now() at time zone 'utc')")
     event = db.Column("event text")
     extra = db.Column("extra jsonb DEFAULT '{}'::jsonb")
+
+
+class PaginatorSource(menus.ListPageSource):
+    def __init__(self, entries: list[asyncpg.Record], *, per_page: int = 10):
+        super().__init__(entries, per_page=per_page)
+
+    async def format_page(self, menu: menus.MenuPages, page: list[asyncpg.Record]) -> discord.Embed:
+        titles, values = [], []
+
+        for _id, expires, _, _, extra in page:
+            message = extra["args"][2]
+            shorten = textwrap.shorten(message, width=512)
+            titles.append(f"{_id}: {time.format_dt(expires, style='R')}")
+            values.append(f"{shorten}")
+        return embed(
+            title="Reminders",
+            fieldstitle=titles,
+            fieldsval=values,
+            fieldsin=[False] * len(titles),
+            footer=f"{menu.current_page}/{self.get_max_pages()} pages"
+        )
+
+    def is_paginating(self) -> bool:
+        return True
 
 
 class Timer:
@@ -95,6 +123,37 @@ class Timer:
         return f"<Timer created={self.created_at} expires={self.expires} event={self.event}>"
 
 
+class ReminderConverter(commands.Converter, app_commands.Transformer):
+    async def convert(self, ctx: Context, argument: str) -> Timer:
+        cog: Reminder = ctx.cog  # type: ignore
+        records: list[asyncpg.Record] = await cog.get_records(ctx.author.id, connection=ctx.db)
+        timers = [Timer(record=record) for record in records]
+
+        try:
+            return next(g for g in timers if str(g.id) == argument)
+        except StopIteration:
+            raise commands.BadArgument("No reminder found.")
+
+    @classmethod
+    async def transform(cls, interaction: discord.Interaction, value: str) -> Timer:
+        cog: Reminder = interaction.client.get_cog("Reminder")  # type: ignore
+        records: list[asyncpg.Record] = await cog.get_records(interaction.user.id)
+        timers = [Timer(record=record) for record in records]
+
+        try:
+            return next(g for g in timers if str(g.id) == value)
+        except StopIteration:
+            raise commands.BadArgument("No reminder found.")
+
+    @classmethod
+    async def autocomplete(cls, interaction: discord.Interaction, value: str) -> list[app_commands.Choice[str | float | int]]:
+        cog: Reminder = interaction.client.get_cog("Reminder")  # type: ignore
+        records: list[asyncpg.Record] = await cog.get_records(interaction.user.id)
+        timers = [Timer(record=record) for record in records]
+
+        return autocomplete([app_commands.Choice(name=g.args[2], value=str(g.id)) for g in timers], value)
+
+
 class Reminder(commands.Cog):
     def __init__(self, bot: AutoShardedBot):
         self.bot: AutoShardedBot = bot
@@ -113,6 +172,16 @@ class Reminder(commands.Cog):
     async def cog_command_error(self, ctx: Context, error: commands.CommandError):
         if isinstance(error, commands.TooManyArguments):
             await ctx.send(f'You called the {ctx.command.name} command with too many arguments.')
+
+    @cache()
+    async def get_records(self, user_id: int, *, connection: asyncpg.Connection = None) -> list[asyncpg.Record]:
+        conn = connection or self.bot.pool
+        query = """SELECT *
+              FROM reminders
+              WHERE event = 'reminder'
+              AND extra #>> '{args,0}' = $1
+              ORDER BY expires;"""
+        return await conn.fetch(query, str(user_id))
 
     async def get_active_timer(self, *, connection: Optional[asyncpg.Connection] = None, days: int = 7) -> Optional[Timer]:
         query = "SELECT * FROM reminders WHERE expires < (CURRENT_DATE + $1::interval) ORDER BY expires LIMIT 1;"
@@ -199,7 +268,7 @@ class Reminder(commands.Cog):
 
         return timer
 
-    @commands.group("reminder", fallback="set", aliases=["timer", "remind"], extras={"examples": ["20m go buy food", "do something in 20m", "jan 1st happy new years"]}, usage="<when> <message>", invoke_without_command=True)
+    @commands.hybrid_group("reminder", fallback="set", aliases=["timer", "remind"], extras={"examples": ["20m go buy food", "do something in 20m", "jan 1st happy new years"]}, usage="<when> <message>", invoke_without_command=True)
     async def reminder(self, ctx: Context, *, when: Annotated[time.FriendlyTimeResult, time.UserFriendlyTime(commands.clean_content, default="...")]):
         """ Create a reminder for a certain time in the future. """
         await self.create_timer(
@@ -212,50 +281,38 @@ class Reminder(commands.Cog):
             created=ctx.message.created_at,
             message_id=ctx.message.id
         )
+        self.get_records.invalidate(self, ctx.author.id)
         await ctx.send(embed=embed(title=f"Reminder set {time.format_dt(when.dt, style='R')}", description=f"{when.arg}"))
 
     @reminder.command("list", ignore_extra=False)
     async def reminder_list(self, ctx: Context):
         """ List all reminders. """
-        query = """SELECT id,expires, extra #>> '{args,2}'
-              FROM reminders
-              WHERE event = 'reminder'
-              AND extra #>> '{args,0}' = $1
-              ORDER BY expires
-              LIMIT 10;"""
-        records = await ctx.db.fetch(query, str(ctx.author.id))
+        records = await self.get_records(ctx.author.id, connection=ctx.db)
 
         if len(records) == 0:
             return await ctx.send(embed=embed(title="You have no reminders.", color=MessageColors.error()))
 
-        if len(records) == 10:
-            footer = "Only 10 reminders are shown."
-        else:
-            footer = f"{len(records)} reminder{'s' if len(records) > 1 else ''}."
+        source = PaginatorSource(entries=records)
+        pages = paginator.RoboPages(source=source, ctx=ctx, compact=True)
 
-        titles, fields = [], []
-        for _id, expires, message in records:
-            shorten = textwrap.shorten(message, width=512)
-            titles.append(f"{_id}: {time.format_dt(expires, style='R')}")
-            fields.append(f"{shorten}")
-
-        await ctx.send(embed=embed(title="Reminders", fieldstitle=titles, fieldsval=fields, fieldsin=[False for _ in range(len(records))], footer=footer))
+        await pages.start()
 
     @reminder.command("delete", aliases=["remove", "cancel"], extras={"examples": ["1", "200"]}, ignore_extra=False)
-    async def reminder_delete(self, ctx: Context, *, id: int):
+    async def reminder_delete(self, ctx: Context, *, reminder: app_commands.Transform[Timer, ReminderConverter]):
         """ Delete a reminder. """
         query = """DELETE FROM reminders
               WHERE id=$1
               AND event='reminder'
               AND extra #>> '{args,0}' = $2;"""
 
-        status = await ctx.db.execute(query, id, str(ctx.author.id))
+        status = await ctx.db.execute(query, reminder.id, str(ctx.author.id))
         if status == "DELETE 0":
             return await ctx.send(embed=embed(title="You have no reminder with that ID.", color=MessageColors.error()))
 
-        if self._current_timer and self._current_timer.id == id:
+        if self._current_timer and self._current_timer.id == reminder.id:
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.dispatch_timers())
+        self.get_records.invalidate(self, ctx.author.id)
 
         await ctx.send(embed=embed(title="Reminder deleted."))
 
@@ -283,12 +340,14 @@ class Reminder(commands.Cog):
         if self._current_timer and self._current_timer.author_id == ctx.author.id:
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.dispatch_timers())
+        self.get_records.invalidate(self, ctx.author.id)
 
         await ctx.send(embed=embed(title=f"Successfully deleted {time.plural(total):reminder}."))
 
     @commands.Cog.listener()
     async def on_reminder_timer_complete(self, timer: Timer):
         author_id, channel_id, message = timer.args
+        self.get_records.invalidate(self, author_id)
 
         try:
             channel = self.bot.get_channel(channel_id) or (await self.bot.fetch_channel(channel_id))

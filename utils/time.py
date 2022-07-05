@@ -14,7 +14,10 @@ import re
 from typing import TYPE_CHECKING, Any, Optional, Union
 
 import parsedatetime as pdt
+import discord
 from dateutil.relativedelta import relativedelta
+from discord import app_commands
+from .fuzzy import autocomplete
 from discord.ext import commands
 
 from .formats import human_join, plural
@@ -158,13 +161,13 @@ class ShortTime:
         return cls(argument, now=ctx.message.created_at, timezone=ctx.timezone)
 
 
-class HumanTime:
+class HumanTime(commands.Converter, app_commands.Transformer):
     calendar = pdt.Calendar(version=pdt.VERSION_CONTEXT_STYLE)
 
     def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None, timezone: datetime.tzinfo = datetime.timezone.utc):
         now = now or datetime.datetime.utcnow()
         now = now.astimezone(timezone)
-        dt, status = self.calendar.parseDT(argument, sourceTime=now)
+        dt, status = self.calendar.parseDT(argument, sourceTime=now, tzinfo=timezone)
         if not status.hasDateOrTime:
             raise commands.BadArgument('invalid time provided, try e.g. "2pm" or "1 hour from now"')
 
@@ -172,12 +175,23 @@ class HumanTime:
             # replace it with the current time
             dt = dt.replace(hour=now.hour, minute=now.minute, second=now.second, microsecond=now.microsecond)
 
-        self.dt = dt = dt.astimezone(timezone)
-        self._past = dt < now
+        self.dt_local = dt.replace(tzinfo=timezone)
+        self.dt = dt = dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+        self._past = self.dt_local < now
 
     @classmethod
     async def convert(cls, ctx: Context, argument: str) -> Self:
         return cls(argument, now=ctx.message.created_at, timezone=ctx.timezone)
+
+    @classmethod
+    async def transform(cls, interaction: discord.Interaction, argument: str) -> Self:
+        timezone = interaction.client.get_timezone(interaction.user.id, interaction.guild_id)  # type: ignore
+        return cls(argument, now=interaction.created_at, timezone=timezone)
+
+    @classmethod
+    async def autocomplete(cls, interaction: discord.Interaction, value: int | float | str) -> list[app_commands.Choice[int | float | str]]:
+        choices = [app_commands.Choice(name=i, value=i) for i in expected_times_of_day]
+        return autocomplete(choices, str(value))
 
 
 class Time(HumanTime):

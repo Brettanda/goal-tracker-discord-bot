@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import textwrap
 import numpy as np
 from discord.app_commands import Choice
 
@@ -8,16 +9,19 @@ def autocomplete(arr: list[Choice], value: str | float | int) -> list[Choice]:
     """Return a list of choices that are at least 70% similar to current."""
     if str(value) == "":
         return arr[:25]
-    choices = [i for i in arr if i.value.lower() == str(value).lower() or str(value).lower() in i.value.lower()]
-    choices = sorted(
-        [
-            (levenshtein_ratio_and_distance(str(value), str(arr[x].value)), i)
-            for x, i in enumerate(arr)
-            if levenshtein_ratio_and_distance(str(value), str(arr[x].value)) >= 0.8
-        ],
-        key=lambda x: x[0],
-    )
-    return [i for _, i in choices][:25]
+    choices = []
+    for x, c in enumerate(arr):
+        c.name = textwrap.shorten(c.name, width=100)
+        if c.value.lower() == str(value).lower() or str(value).lower() in c.value.lower():
+            choices.append((0, c))
+        if levenshtein_ratio_and_distance(str(value), str(arr[x].value)) >= 0.8 and (0, c) not in choices:
+            choices.append((levenshtein_ratio_and_distance(str(value), str(arr[x].value)), c))
+
+    return [
+        i
+        for _, i in
+        sorted(choices, key=lambda x: x[0])
+    ][:25]
 
 
 def levenshtein_ratio_and_distance(first: str, second: str, ratio_calc: bool = False) -> float:
