@@ -29,8 +29,7 @@ jobs:
         id: cache
         with:
           path: |
-            ${{ env.pythonLocation}}/lib/python${{ matrix.python-version }}/site-packages/*
-            ${{ github.workspace }}/venv
+            ./.venv
           key: ${{ matrix.os }}-pip-${{ env.cache-name }}-${{ hashfiles('requirements.txt') }}
 
       - name: Install dependencies
@@ -53,11 +52,11 @@ jobs:
           version: '1.1.253'
           warnings: false
           no-comments: ${{ matrix.python-version != '3.x' }}
-          venv-path: ${{ github.workspace }}/venv/bin/activate
+          venv-path: ./.venv
 
       - name: Lint with flake8
         run: |
-          . venv/bin/activate
+          . ./.venv/bin/activate
           # stop the build if there are Python syntax errors or undefined names
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           # exit-zero treats all errors as warnings. The Github editor is 127 chars wide
