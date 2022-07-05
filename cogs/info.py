@@ -13,6 +13,9 @@ if TYPE_CHECKING:
     from index import AutoShardedBot
     from utils.context import Context
 
+SUPPORT_SERVER_ID = 991443052625412116
+SUPPORT_SERVER_INVITE = "https://discord.gg/PSgfZ5MzTg"
+
 INVITE_PERMISSIONS = discord.Permissions(
     send_messages=True,
     send_messages_in_threads=True,
@@ -35,8 +38,9 @@ class Info(commands.Cog):
     def __repr__(self) -> str:
         return f"<cogs.{self.__cog_name__}>"
 
-    @commands.hybrid_command(name="info", aliases=["about"], help="Displays some information about myself :)")
+    @commands.hybrid_command(name="about", aliases=["info"])
     async def info(self, ctx: Context):
+        """Displays some information about myself :)"""
         uptime = human_timedelta(self.bot.uptime, accuracy=None, brief=True, suffix=False)
 
         memory_usage = self.process.memory_full_info().uss / 1024**2
@@ -87,9 +91,15 @@ class Info(commands.Cog):
     def link(self):
         return oauth_url(self.bot.user.id, permissions=INVITE_PERMISSIONS, scopes=["bot", "applications.commands"])
 
-    @commands.hybrid_command("invite", help="Get the invite link to add me to your server")
+    @commands.hybrid_command("invite")
     async def _invite(self, ctx: Context):
+        """Get the invite link to add me to your server"""
         await ctx.send(embed=embed(title="Invite me :)"), view=InviteButtons(self.link))
+
+    @commands.hybrid_command(name="support")
+    async def _support(self, ctx: Context):
+        """Get an invite link to my support server"""
+        await ctx.reply(SUPPORT_SERVER_INVITE)
 
 
 async def setup(bot: AutoShardedBot):

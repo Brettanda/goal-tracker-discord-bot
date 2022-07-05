@@ -79,6 +79,7 @@ class AutoShardedBot(commands.AutoShardedBot):
 
         self.bot_app_info = await self.application_info()
         self.owner_id = self.bot_app_info.team and self.bot_app_info.team.owner_id or self.bot_app_info.owner.id
+        self.owner = self.get_user(self.owner_id) or await self.fetch_user(self.owner_id)
 
         self.pool = await Table.create_pool(config.postgresql)
 
@@ -92,10 +93,6 @@ class AutoShardedBot(commands.AutoShardedBot):
                 await self.load_extension(f"{path}{cog}")
             except Exception as e:
                 log.error(f"Failed to load extenstion {cog} with \n {e}")
-
-    @property
-    def owner(self) -> discord.User:
-        return self.bot_app_info.owner
 
     async def get_context(self, origin: discord.Message | discord.Interaction, /, *, cls=None) -> Context:
         return await super().get_context(origin, cls=cls or Context)
