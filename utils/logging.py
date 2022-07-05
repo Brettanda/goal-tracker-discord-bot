@@ -78,7 +78,7 @@ class setup_logging:
         self.log.addHandler(filehandler)
         self.log.addHandler(handler)
 
-    def __exit__(self) -> None:
+    def __exit__(self, *args) -> None:
         handlers = self.log.handlers[:]
         for hdlr in handlers:
             hdlr.close()

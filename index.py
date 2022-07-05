@@ -94,6 +94,11 @@ class AutoShardedBot(commands.AutoShardedBot):
             except Exception as e:
                 log.error(f"Failed to load extenstion {cog} with \n {e}")
 
+        if config.dev_server:
+            TESTING_SERVER = discord.Object(id=config.dev_server)
+            self.tree.copy_global_to(guild=TESTING_SERVER)
+            await self.tree.sync(guild=TESTING_SERVER)
+
     async def get_context(self, origin: discord.Message | discord.Interaction, /, *, cls=None) -> Context:
         return await super().get_context(origin, cls=cls or Context)
 

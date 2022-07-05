@@ -15,6 +15,7 @@ token = 'YOUR_TOKEN_HERE'
 default_prefix = 'gt!'
 postgresql = 'postgresql://user:password@host/database'
 bot_stat_webhook = ('[webhook_id]', '[webhook_token]')
+dev_server = 1234567891324568
 ```
 
 2. Setup venv

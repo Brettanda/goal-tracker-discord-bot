@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING, Any, Generator, Optional, Union
 
 import discord
 import datetime
-import pytz
 from discord.ext import commands
 
 if TYPE_CHECKING:
@@ -156,8 +155,7 @@ class Context(commands.Context):
           timeout: float = 60.0,
           delete_after: bool = True,
           reacquire: bool = True,
-          author_id: Optional[int] = None,
-          **kwargs
+          author_id: Optional[int] = None
     ) -> Optional[bool]:
         """An interactive reaction confirmation dialog.
 
@@ -191,7 +189,7 @@ class Context(commands.Context):
             author_id=author_id
         )
         # kwargs["embed"] = kwargs.pop("embed", embed(title=message))
-        view.message = await self.send(view=view, **kwargs)
+        view.message = await self.send(message, view=view)
         await view.wait()
         return view.value
 
