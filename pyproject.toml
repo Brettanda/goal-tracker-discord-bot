@@ -2,7 +2,8 @@
 reportUnnecessaryTypeIgnoreComment = "warning"
 reportAssertAlwaysTrue = "warning"
 reportUnnecessaryIsInstance = "warning"
-pythonVersion = "3.8"
+reportGeneralTypeIssues = "error"
+pythonVersion = "3.8.10"
 typeCheckingMode = "basic"
 strictParameterNoneValue = false
 include = [
@@ -13,4 +14,9 @@ exclude = [
     "**/__pycache__",
     "build",
     "dist"
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
 ]
