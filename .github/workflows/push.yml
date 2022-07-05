@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - uses: actions/cache@3
+      - uses: actions/cache@2
         id: cache-pipenv
         with:
           path: ~/.local/share/virtualenvs
