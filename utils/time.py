@@ -137,6 +137,89 @@ def human_timedelta(dt: datetime.datetime, *, source: Optional[datetime.datetime
             return ' '.join(output) + output_suffix
 
 
+expected_intervals = [
+    *[f"{plural(x):minute}" for x in range(15, 60)],
+    *[f"{plural(x):hour}" for x in range(1, 24)],
+    *[f"{plural(x):day}" for x in range(1, 31)],
+    *[f"{plural(x):week}" for x in range(1, 5)],
+    *[f"{plural(x):month}" for x in range(1, 12)],
+    # *[f"{plural(x):year}" for x in range(1, 5)]
+]
+
+
+class Interval(commands.Converter, app_commands.Transformer):
+    # (?:(?P<years>[0-9])\s?(?:years?|y))?             # e.g. 2y
+    compiled = re.compile(r"""(?:(?P<months>[0-9]{1,2})\s?(?:months?|mo))?     # e.g. 2months
+                             (?:(?P<weeks>[0-9]{1,4})\s?(?:weeks?|w))?        # e.g. 10w
+                             (?:(?P<days>[0-9]{1,5})\s?(?:days?|d))?          # e.g. 14 d
+                             (?:(?P<hours>[0-9]{1,5})\s?(?:hours?|h))?        # e.g. 12h
+                             (?:(?P<minutes>[0-9]{1,5})\s?(?:minutes?|m))?    # e.g. 10m
+                          """, re.VERBOSE)
+
+    def __init__(self, argument: str, *, _min: int = 0):
+        match = self.compiled.fullmatch(argument)
+        if match is None or not match.group(0):
+            raise commands.BadArgument('invalid time provided')
+
+        data = {k: int(v) for k, v in match.groupdict(default=0).items()}
+        now = discord.utils.utcnow()
+        interval = (now + relativedelta(**data)) - now
+        if interval.total_seconds() < _min:
+            raise commands.BadArgument(f'value provided is too small. Min is {_min} seconds.')
+        self.interval = interval
+
+    @classmethod
+    async def convert(cls, ctx: Context, argument: str) -> Self:
+        return cls(argument, _min=15 * 60)
+
+    @classmethod
+    async def transform(cls, interaction: discord.Interaction, argument: str) -> Self:
+        return cls(argument, _min=15 * 60)
+
+    @classmethod
+    async def autocomplete(cls, interaction: discord.Interaction, value: int | float | str) -> list[app_commands.Choice[int | float | str]]:
+        intervals = sorted(
+            expected_intervals,
+            key=lambda x: int(x.split(' ')[0])
+        )
+        choices = [app_commands.Choice(name=i, value=i) for i in intervals]
+        return autocomplete(choices, str(value))
+
+
+expected_times_of_day = [
+    minute != 0 and f"{hour}:{minute:02d} {quarter}" or f"{hour} {quarter}"
+    for minute in range(0, 60)
+    for hour in range(1, 13)
+    for quarter in ["AM", "PM"]
+]
+
+
+class TimeOfDay(commands.Converter, app_commands.Transformer):
+    calendar = pdt.Calendar(version=pdt.VERSION_CONTEXT_STYLE)
+
+    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None, timezone: datetime.tzinfo = datetime.timezone.utc):
+        dt, status = self.calendar.parseDT(argument, sourceTime=now, tzinfo=timezone)
+        if not status.hasTime:
+            raise commands.BadArgument('invalid time provided, try e.g. "2pm" or "1 hour from now"')
+
+        self.time: datetime.time = dt.time()
+        self.dt: datetime.datetime = dt
+
+    @classmethod
+    async def convert(cls, ctx: Context, argument: str) -> Self:
+        return cls(argument, now=ctx.message.created_at, timezone=ctx.timezone)
+
+    @classmethod
+    async def transform(cls, interaction: discord.Interaction, argument: str) -> Self:
+        timezone = interaction.client.get_timezone(interaction.user.id, interaction.guild_id)  # type: ignore
+        return cls(argument, now=interaction.created_at, timezone=timezone)
+
+    @classmethod
+    async def autocomplete(cls, interaction: discord.Interaction, value: int | float | str) -> list[app_commands.Choice[int | float | str]]:
+        choices = [app_commands.Choice(name=i, value=i) for i in expected_times_of_day]
+        return autocomplete(choices, str(value))
+
+
 class ShortTime:
     compiled = re.compile("""(?:(?P<years>[0-9])(?:years?|y))?             # e.g. 2y
                              (?:(?P<months>[0-9]{1,2})(?:months?|mo))?     # e.g. 2months
