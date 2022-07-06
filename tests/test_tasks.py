@@ -11,23 +11,23 @@ pytestmark = pytest.mark.asyncio
 
 async def test_task_from_past():
     now = discord.utils.utcnow().replace(tzinfo=None)
-    time = datetime.time(hour=now.hour - 1)
-    date = datetime.datetime.combine(now.date(), time)
+    hour = now.hour - 1 if now.hour - 1 >= 0 else 23
+    time = datetime.time(hour=hour)
+    date = datetime.datetime.combine(now.date() if hour != 23 else now.date() - datetime.timedelta(days=1), time)
     delta = datetime.timedelta(days=1)
     record = {
-        "id": 1,
+        "id": None,
         "user_id": 215227961048170496,
         "created": now,
         "name": "test daily task",
-        "goal": None,
         "time": time,
         "interval": delta,
+        "last_reset": date,
+        "reset_datetime": date,
         "remind_me": True,
         "completed": False,
-        "last_reset": date
     }
     task = Task(record=record)
-    assert task.id == 1
     assert task.user_id == 215227961048170496
     target = date + delta  # tomorrow
     next_reset = task.next_reset()
@@ -36,23 +36,23 @@ async def test_task_from_past():
 
 async def test_task_from_future():
     now = discord.utils.utcnow().replace(tzinfo=None)
-    time = datetime.time(hour=now.hour + 1)
-    date = datetime.datetime.combine(now.date(), time)
+    hour = now.hour + 1 if now.hour + 1 < 24 else 0
+    time = datetime.time(hour=hour)
+    date = datetime.datetime.combine(now.date() if hour != 0 else now.date() + datetime.timedelta(days=1), time)
     delta = datetime.timedelta(days=1)
     record = {
-        "id": 1,
+        "id": None,
         "user_id": 215227961048170496,
         "created": now,
         "name": "test daily task",
-        "goal": None,
         "time": time,
         "interval": delta,
+        "last_reset": now,
+        "reset_datetime": date,
         "remind_me": True,
         "completed": False,
-        "last_reset": date
     }
     task = Task(record=record)
-    assert task.id == 1
     assert task.user_id == 215227961048170496
     target = date
     next_reset = task.next_reset()
