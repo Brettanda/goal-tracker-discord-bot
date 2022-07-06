@@ -104,7 +104,7 @@ class TaskDisplayIntervals(enum.Enum):
 
 
 class Task:
-    __slots__ = ("id", "user_id", "created", "name", "goal", "time", "interval", "reset_datetime", "completed", "remind_me", "last_reset",)
+    __slots__ = ("id", "user_id", "created", "name", "time", "interval", "reset_datetime", "completed", "remind_me", "last_reset",)
 
     def __init__(self, *, record: asyncpg.Record) -> None:
         self.id: int = record["id"]
