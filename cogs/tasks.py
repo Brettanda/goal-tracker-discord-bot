@@ -19,8 +19,6 @@ from utils.fuzzy import autocomplete
 from utils.time import TimeOfDay, Interval, format_dt, human_timedelta
 from utils.time import ADT, NDT, NT
 
-from .goals import Goal, GoalConverter
-
 if TYPE_CHECKING:
     from index import AutoShardedBot
     from utils.context import Context
@@ -35,7 +33,6 @@ class TasksTracked(Table):
     id = Column("id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY")
     user_id = Column("user_id bigint NOT NULL")
     created = Column("created timestamp NOT NULL DEFAULT (now() at time zone 'utc')")
-    goal = Column("goal bigint, CONSTRAINT fk_goal FOREIGN KEY(goal) REFERENCES goalstracked(id) ON DELETE SET NULL")
     name = Column("name text NOT NULL")
     time = Column("time time NOT NULL DEFAULT (now() at time zone 'utc')")
     interval = Column("interval interval NOT NULL DEFAULT '1 day'")
@@ -113,7 +110,6 @@ class Task:
         self.user_id: int = record["user_id"]
         self.created: NDT = record["created"]
         self.name: str = record["name"]
-        self.goal: Optional[int] = record["goal"]
         self.time: NT = record["time"]
         self.interval: datetime.timedelta = record["interval"]
         self.last_reset: NDT = record["last_reset"]
@@ -280,7 +276,6 @@ class TaskTracker(commands.Cog):
             resets_every: Interval,
             start_time: TimeOfDay = None,
             remind_me: bool = False,
-            goal: app_commands.Transform[Goal, GoalConverter] = None,
             *,
             task_name: str
     ):
@@ -292,7 +287,7 @@ class TaskTracker(commands.Cog):
         if reminder is None:
             return await ctx.send('Sorry, this functionality is currently unavailable. Try again later?', ephemeral=True)
 
-        record = await ctx.db.fetchrow("INSERT INTO taskstracked (user_id, name, interval, last_reset, time, remind_me, goal) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", ctx.author.id, task_name, resets_every.interval, dt, dt.time(), remind_me, goal)
+        record = await ctx.db.fetchrow("INSERT INTO taskstracked (user_id, name, interval, last_reset, time, remind_me) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", ctx.author.id, task_name, resets_every.interval, dt, dt.time(), remind_me)
         task = Task(record=record)
         await reminder.create_timer(task.next_reset(aware=True), "task_reset", ctx.author.id, task.id)
         self.get_tasks.invalidate(self, ctx.author.id)
@@ -315,7 +310,6 @@ class TaskTracker(commands.Cog):
         remind_me: bool = None,
         completed: bool = None,
         task_name: str = None,
-        goal: app_commands.Transform[Goal, GoalConverter] = None
     ):
         """Change a task"""
         if resets_every is None and start_time is None and remind_me is None and completed is None and task_name is None and goal is None:
@@ -341,10 +335,6 @@ class TaskTracker(commands.Cog):
         if remind_me is not None:
             options.append(f"remind_me = ${x}")
             params.append(remind_me)
-            x += 1
-        if goal is not None:
-            options.append(f"goal = ${x}")
-            params.append(goal and goal.id)
             x += 1
         if task_name is not None:
             options.append(f"name = ${x}")
