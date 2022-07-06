@@ -6,7 +6,7 @@ import logging
 import sys
 import traceback
 from collections import Counter, defaultdict
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Optional, overload
 
 import aiohttp
 import asyncpg
@@ -173,16 +173,51 @@ class AutoShardedBot(commands.AutoShardedBot):
             # else:
             #     log.info("ERROR sent")
 
-    def get_timezone_name(self, user_id: int, guild_id: Optional[int] = None) -> str:
-        if guild_id is not None:
-            try:
-                return self.timezones[user_id]
-            except KeyError:
-                return self.timezones.get(guild_id, 'UTC')
-        return self.timezones.get(user_id, 'UTC')
+    @overload
+    def get_timezone_name(self, *priorities: Optional[int]) -> str:
+        ...
 
-    def get_timezone(self, user_id: int, guild: Optional[int] = None) -> datetime.tzinfo:
-        return pytz.timezone(self.get_timezone_name(user_id, guild))
+    @overload
+    def get_timezone_name(self, *priorities: Optional[int], default: str) -> str:
+        ...
+
+    @overload
+    def get_timezone_name(self, *priorities: Optional[int], default: None) -> Optional[str]:
+        ...
+
+    def get_timezone_name(self, *priorities: Optional[int], default: Optional[str] = "UTC") -> Optional[str]:
+        """ Returns the first timezone name from the first indexable priority. """
+        for x, p in enumerate(priorities):
+            if p is None:
+                continue
+
+            if x == len(priorities):
+                return self.timezones.get(p, default)
+
+            try:
+                return self.timezones[p]
+            except KeyError:
+                continue
+
+        return default
+
+    @overload
+    def get_timezone(self, *priorities: Optional[int]) -> datetime.tzinfo:
+        ...
+
+    @overload
+    def get_timezone(self, *priorities: Optional[int], default: str) -> datetime.tzinfo:
+        ...
+
+    @overload
+    def get_timezone(self, *priorities: Optional[int], default: None) -> Optional[datetime.tzinfo]:
+        ...
+
+    def get_timezone(self, *priorities: Optional[int], default: Optional[str] = "UTC") -> Optional[datetime.tzinfo]:
+        tz = self.get_timezone_name(*priorities, default=default)
+        if tz is None:
+            return None
+        return pytz.timezone(tz)
 
     async def on_ready(self):
         if not hasattr(self, "uptime"):
