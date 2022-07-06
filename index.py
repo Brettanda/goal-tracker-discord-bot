@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from cogs.reminder import Reminder
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger()
 
 
 def get_prefix(bot: AutoShardedBot, message: discord.Message):
@@ -66,8 +66,7 @@ class AutoShardedBot(commands.AutoShardedBot):
 
         self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
 
-        log.info(
-            f"Cluster Starting {kwargs.get('shard_ids', None)}, {kwargs.get('shard_count', 1)}")
+        log.info(f"Cluster Starting {kwargs.get('shard_ids', None)}, {kwargs.get('shard_count', 1)}")
 
     def __repr__(self) -> str:
         return f"<Bot username=\"{self.user}\" id={self.user and self.user.id}>"
@@ -323,9 +322,9 @@ if __name__ == "__main__":
         if sys.argv[1] == "--init":
             db_init()
 
-    bot = AutoShardedBot()
-    try:
-        with setup_logging():
+    with setup_logging():
+        bot = AutoShardedBot()
+        try:
             asyncio.run(main(bot))
-    except KeyboardInterrupt:
-        asyncio.run(bot.close())
+        except KeyboardInterrupt:
+            asyncio.run(bot.close())
