@@ -308,7 +308,7 @@ class TaskTracker(commands.Cog):
         task_name: str = None,
     ):
         """Change a task"""
-        if resets_every is None and start_time is None and remind_me is None and completed is None and task_name is None and goal is None:
+        if resets_every is None and start_time is None and remind_me is None and completed is None and task_name is None:
             await ctx.send("Nothing changed", ephemeral=True)
             return
 
