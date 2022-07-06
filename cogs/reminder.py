@@ -24,7 +24,6 @@ from utils.cache import cache
 from utils import paginator
 from utils import time, db
 from utils.embed import embed
-from utils.colours import MessageColors
 from utils.time import ADT, NDT
 from utils.fuzzy import autocomplete
 
@@ -269,20 +268,20 @@ class Reminder(commands.Cog):
         return timer
 
     @commands.hybrid_group("reminder", fallback="set", aliases=["timer", "remind"], extras={"examples": ["20m go buy food", "do something in 20m", "jan 1st happy new years"]}, usage="<when> <message>", invoke_without_command=True)
-    async def reminder(self, ctx: Context, *, when: Annotated[time.FriendlyTimeResult, time.UserFriendlyTime(commands.clean_content, default="...")]):
+    async def reminder(self, ctx: Context, *, when: Annotated[time.FriendlyTimeResult, time.UserFriendlyTime(commands.clean_content, default="...")], reminder: str = None):
         """ Create a reminder for a certain time in the future. """
         await self.create_timer(
             when.dt,
             "reminder",
             ctx.author.id,
             ctx.channel.id,
-            when.arg,
+            reminder or when.arg,
             connection=ctx.pool,
             created=ctx.message.created_at,
             message_id=ctx.message.id
         )
         self.get_records.invalidate(self, ctx.author.id)
-        await ctx.send(embed=embed(title=f"Reminder set {time.format_dt(when.dt, style='R')}", description=f"{when.arg}"))
+        await ctx.send(f"Reminder set {time.format_dt(when.dt, style='R')}\n{when.arg}")
 
     @reminder.command("list", ignore_extra=False)
     async def reminder_list(self, ctx: Context):
@@ -290,7 +289,7 @@ class Reminder(commands.Cog):
         records = await self.get_records(ctx.author.id, connection=ctx.db)
 
         if len(records) == 0:
-            return await ctx.send(embed=embed(title="You have no reminders.", color=MessageColors.error()))
+            return await ctx.send("You have no reminders.")
 
         source = PaginatorSource(entries=records)
         pages = paginator.RoboPages(source=source, ctx=ctx, compact=True)
@@ -307,14 +306,14 @@ class Reminder(commands.Cog):
 
         status = await ctx.db.execute(query, reminder.id, str(ctx.author.id))
         if status == "DELETE 0":
-            return await ctx.send(embed=embed(title="You have no reminder with that ID.", color=MessageColors.error()))
+            return await ctx.send("You have no reminder with that ID.")
 
         if self._current_timer and self._current_timer.id == reminder.id:
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.dispatch_timers())
         self.get_records.invalidate(self, ctx.author.id)
 
-        await ctx.send(embed=embed(title="Reminder deleted."))
+        await ctx.send("Reminder deleted.")
 
     @reminder.command("clear", ignore_extra=False)
     async def reminder_clear(self, ctx: Context):
@@ -328,11 +327,11 @@ class Reminder(commands.Cog):
         total = await ctx.db.fetchrow(query, author_id)
         total = total[0]
         if total == 0:
-            return await ctx.send(embed=embed(title="You have no reminders.", color=MessageColors.error()))
+            return await ctx.send("You have no reminders.")
 
         confirm = await ctx.prompt(f"Are you sure you want to delete {time.plural(total):reminder}?")
         if not confirm:
-            return await ctx.send(embed=embed(title="Cancelled."))
+            return await ctx.send("Cancelled.")
 
         query = """DELETE FROM reminders WHERE event = 'reminder' AND extra #>> '{args,0}' = $1;"""
         await ctx.db.execute(query, author_id)
@@ -342,7 +341,7 @@ class Reminder(commands.Cog):
             self._task = self.bot.loop.create_task(self.dispatch_timers())
         self.get_records.invalidate(self, ctx.author.id)
 
-        await ctx.send(embed=embed(title=f"Successfully deleted {time.plural(total):reminder}."))
+        await ctx.send(f"Successfully deleted {time.plural(total):reminder}.")
 
     @commands.Cog.listener()
     async def on_reminder_timer_complete(self, timer: Timer):

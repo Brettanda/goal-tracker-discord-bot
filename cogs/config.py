@@ -46,14 +46,6 @@ class Config(commands.Cog, command_attrs=dict(extras={"permissions": ["manage_gu
     def __repr__(self) -> str:
         return f"<cogs.{self.__cog_name__}>"
 
-    async def cog_check(self, ctx: Context | GuildContext) -> bool:
-        if await ctx.bot.is_owner(ctx.author):
-            return True
-
-        if ctx.guild is not None and not ctx.author.guild_permissions.manage_guild:  # type: ignore
-            raise commands.MissingPermissions(["manage_guild"])
-        return True
-
     @commands.command(name="prefix", extras={"examples": ["?", "gt!"]})
     @commands.has_guild_permissions(manage_guild=True)
     async def prefix(self, ctx: GuildContext, new_prefix: str = None):
