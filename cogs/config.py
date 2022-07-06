@@ -70,7 +70,8 @@ class Config(commands.Cog, command_attrs=dict(extras={"permissions": ["manage_gu
     async def timezone_user(self, ctx: Context, timezone: app_commands.Transform[Optional[pytz.BaseTzInfo], Timezone] = None):
         """Sets the timezone for a specific user."""
         if timezone is None:
-            return await ctx.send(f"Current timezone: `{ctx.timezone}`")
+            tz = self.bot.get_timezone(ctx.author.id, default=None)
+            return await ctx.send(f"Current timezone: `{tz}`")
         now = ctx.message.created_at.astimezone(timezone).strftime("%I:%M:%S %p")
         await self.bot.timezones.put(ctx.author.id, str(timezone))
         await ctx.send(f"Setting timezone to `{timezone}` where it is currently `{now}`", ephemeral=True)
@@ -80,7 +81,8 @@ class Config(commands.Cog, command_attrs=dict(extras={"permissions": ["manage_gu
     async def timezone_guild(self, ctx: GuildContext, timezone: app_commands.Transform[Optional[pytz.BaseTzInfo], Timezone] = None):
         """Sets the default timezone for the server"""
         if timezone is None:
-            return await ctx.send(f"Current timezone: `{ctx.timezone}`")
+            tz = self.bot.get_timezone(ctx.guild and ctx.guild.id, default=None)
+            return await ctx.send(f"Current timezone: `{tz}`")
         now = ctx.message.created_at.astimezone(timezone).strftime("%I:%M:%S %p")
         await self.bot.timezones.put(ctx.guild.id, str(timezone))
         await ctx.send(f"Setting timezone to `{timezone}` where it is currently `{now}`", ephemeral=True)
