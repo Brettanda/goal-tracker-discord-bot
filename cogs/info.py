@@ -99,7 +99,7 @@ class Info(commands.Cog):
     @commands.hybrid_command(name="support")
     async def _support(self, ctx: Context):
         """Get an invite link to my support server"""
-        await ctx.reply(SUPPORT_SERVER_INVITE)
+        await ctx.send(SUPPORT_SERVER_INVITE)
 
 
 async def setup(bot: AutoShardedBot):

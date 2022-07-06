@@ -4,7 +4,7 @@ import asyncio
 import datetime
 import enum
 import logging
-from typing import TYPE_CHECKING, Optional, overload, Literal
+from typing import TYPE_CHECKING, Literal, Optional, overload
 
 import asyncpg
 import discord
