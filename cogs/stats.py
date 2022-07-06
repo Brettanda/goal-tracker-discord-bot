@@ -773,18 +773,6 @@ class Stats(commands.Cog, command_attrs=dict(hidden=True)):
 
         await ctx.send(f"```\n{graph}\n```")
 
-    # @commands.command("beforeleave")
-    # async def beforeleave(self, ctx: Context):
-    #   # from the database get the servers that friday joined then left
-    #   # get the commands that executed in those servers before friday left
-    #   # return the common commands that executed before friday left
-
-    #   query = """SELECT DISTINCT guild_id
-    #             FROM joined
-    #             WHERE joined IS false;"""
-    #   guilds = await ctx.db.fetch(query)
-    #   guild_ids = [g["guild_id"] for g in guilds]
-
 
 old_on_error = commands.AutoShardedBot.on_error
 

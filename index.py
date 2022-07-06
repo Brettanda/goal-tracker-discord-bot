@@ -36,8 +36,6 @@ def get_prefix(bot: AutoShardedBot, message: discord.Message):
 
 
 class AutoShardedBot(commands.AutoShardedBot):
-    """Friday is a discord bot that is designed to be a flexible and easy to use bot."""
-
     user: discord.ClientUser
     pool: asyncpg.Pool
     uptime: datetime.datetime
@@ -72,7 +70,7 @@ class AutoShardedBot(commands.AutoShardedBot):
             f"Cluster Starting {kwargs.get('shard_ids', None)}, {kwargs.get('shard_count', 1)}")
 
     def __repr__(self) -> str:
-        return f"<Friday username=\"{self.user.display_name if self.user else None}\" id={self.user.id if self.user else None}>"
+        return f"<Bot username=\"{self.user}\" id={self.user and self.user.id}>"
 
     async def setup_hook(self) -> None:
         self.session = aiohttp.ClientSession()

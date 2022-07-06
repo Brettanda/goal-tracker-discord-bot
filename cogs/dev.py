@@ -208,7 +208,7 @@ class Dev(commands.Cog, command_attrs=dict(hidden=True)):
         finally:
             await ctx.message.delete()
             await stat.delete()
-            stdout, stderr = await self.run_process("systemctl daemon-reload && systemctl restart friday.service")
+            stdout, stderr = await self.run_process("systemctl daemon-reload && systemctl restart goal-tracker.service")
             await ctx.send(f"```sh\n{stdout}\n{stderr}```")
 
     @dev.group(name="reload", invoke_without_command=True)
@@ -272,11 +272,7 @@ class Dev(commands.Cog, command_attrs=dict(hidden=True)):
 
             if root.startswith("cogs"):
                 ret.append((0, root.replace("/", ".")))  # root.count("/") - 1 # if functions moves to cog folder
-            elif root.startswith("functions"):
-                ret.append((1, root.replace("/", ".")))
-            elif root.startswith("spice/cogs"):
-                ret.append((0, root.replace("/", ".")))
-            elif root.startswith("spice/functions"):
+            elif root.startswith("utils"):
                 ret.append((1, root.replace("/", ".")))
 
         ret.sort(reverse=True)
