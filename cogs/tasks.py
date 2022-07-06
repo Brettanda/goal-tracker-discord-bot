@@ -37,6 +37,7 @@ class TasksTracked(Table):
     time = Column("time time NOT NULL DEFAULT (now() at time zone 'utc')")
     interval = Column("interval interval NOT NULL DEFAULT '1 day'")
     last_reset = Column("last_reset timestamp NOT NULL DEFAULT (now() at time zone 'utc')")
+    reset_datetime = Column("reset_datetime timestamp GENERATED ALWAYS AS (CASE WHEN interval > '1 day' THEN last_reset::date + time::time ELSE last_reset END) STORED")
     remind_me = Column("remind_me boolean NOT NULL DEFAULT false")
     completed = Column("completed boolean NOT NULL DEFAULT false")
 
@@ -103,7 +104,7 @@ class TaskDisplayIntervals(enum.Enum):
 
 
 class Task:
-    __slots__ = ("id", "user_id", "created", "name", "goal", "time", "interval", "completed", "remind_me", "last_reset",)
+    __slots__ = ("id", "user_id", "created", "name", "goal", "time", "interval", "reset_datetime", "completed", "remind_me", "last_reset",)
 
     def __init__(self, *, record: asyncpg.Record) -> None:
         self.id: int = record["id"]
@@ -113,14 +114,9 @@ class Task:
         self.time: NT = record["time"]
         self.interval: datetime.timedelta = record["interval"]
         self.last_reset: NDT = record["last_reset"]
+        self.reset_datetime: NDT = record["reset_datetime"]
         self.remind_me: bool = record["remind_me"]
         self.completed: bool = record["completed"]
-
-    @property
-    def reset_datetime(self) -> NDT:
-        if self.interval.days > 0:
-            return NDT.combine(self.last_reset, self.time)
-        return self.last_reset
 
     @overload
     def next_reset(self, *, aware: Literal[True]) -> ADT:
