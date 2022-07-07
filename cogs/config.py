@@ -79,21 +79,21 @@ class Config(commands.Cog, command_attrs=dict(extras={"permissions": ["manage_gu
         await self.bot.timezones.put(ctx.guild.id, str(timezone))
         await ctx.send(f"Setting timezone to `{timezone}` where it is currently `{now}`", ephemeral=True)
 
-    @commands.hybrid_command("updates")
-    @commands.has_permissions(manage_webhooks=True)
-    @commands.bot_has_permissions(manage_webhooks=True)
-    @commands.has_guild_permissions(manage_guild=True)
-    async def updates(self, ctx: GuildContext, channel: discord.TextChannel):
-        """Recieve updates on new features and changes for Goal Tracker"""
-        updates_channel: discord.TextChannel = self.bot.get_channel(UPDATES_CHANNEL)  # type: ignore
+    # @commands.hybrid_command("updates")
+    # @commands.has_permissions(manage_webhooks=True)
+    # @commands.bot_has_permissions(manage_webhooks=True)
+    # @commands.has_guild_permissions(manage_guild=True)
+    # async def updates(self, ctx: GuildContext, channel: discord.TextChannel):
+    #     """Recieve updates on new features and changes for Goal Tracker"""
+    #     updates_channel: discord.TextChannel = self.bot.get_channel(UPDATES_CHANNEL)  # type: ignore
 
-        if updates_channel.id in [w.source_channel and w.source_channel.id for w in await channel.webhooks()]:
-            confirm = await ctx.prompt("This channel is already subscribed to updates. Are you sure you want to subscribe again?")
-            if not confirm:
-                return await ctx.send("Cancelled")
+    #     if updates_channel.id in [w.source_channel and w.source_channel.id for w in await channel.webhooks()]:
+    #         confirm = await ctx.prompt("This channel is already subscribed to updates. Are you sure you want to subscribe again?")
+    #         if not confirm:
+    #             return await ctx.send("Cancelled")
 
-        await updates_channel.follow(destination=channel, reason="Called updates command, for Friday updates")
-        await ctx.send("Updates channel followed")
+    #     await updates_channel.follow(destination=channel, reason=f"Called updates command, for {self.bot.user} updates")
+    #     await ctx.send("Updates channel followed")
 
 
 async def setup(bot: AutoShardedBot):
