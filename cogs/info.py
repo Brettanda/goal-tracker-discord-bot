@@ -20,7 +20,6 @@ INVITE_PERMISSIONS = discord.Permissions(
     send_messages=True,
     send_messages_in_threads=True,
     embed_links=True,
-    add_reactions=True,
 )
 
 

@@ -57,8 +57,6 @@ class AutoShardedBot(commands.AutoShardedBot):
             **kwargs
         )
 
-        self.ready = False
-
         # shard_id: List[datetime.datetime]
         # shows the last attempted IDENTIFYs and RESUMEs
         self.resumes: defaultdict[int, list[datetime.datetime]] = defaultdict(list)

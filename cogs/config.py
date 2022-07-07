@@ -68,7 +68,8 @@ class Config(commands.Cog, command_attrs=dict(extras={"permissions": ["manage_gu
         await self.bot.timezones.put(ctx.author.id, str(timezone))
         await ctx.send(f"Setting timezone to `{timezone}` where it is currently `{now}`", ephemeral=True)
 
-    @commands.hybrid_command(name="servertimezone", aliases=["guildtimezone"], default_member_permissions=discord.Permissions(manage_guild=True))
+    @commands.hybrid_command(name="servertimezone", aliases=["guildtimezone"])
+    # @app_commands.default_permissions(manage_guild=True)
     @commands.has_guild_permissions(manage_guild=True)
     async def timezone_guild(self, ctx: GuildContext, timezone: app_commands.Transform[Optional[pytz.BaseTzInfo], Timezone] = None):
         """Sets the default timezone for the server"""
