@@ -16,8 +16,7 @@ from utils.colours import MessageColors
 from utils.db import Column, Table
 from utils.embed import embed
 from utils.fuzzy import autocomplete
-from utils.time import TimeOfDay, Interval, format_dt, human_timedelta
-from utils.time import ADT, NDT, NT
+from utils.time import ADT, NDT, NT, Interval, TimeOfDay, format_dt
 
 if TYPE_CHECKING:
     from index import AutoShardedBot
@@ -41,6 +40,13 @@ class TasksTracked(Table):
     remind_me = Column("remind_me boolean NOT NULL DEFAULT false")
     completed = Column("completed boolean NOT NULL DEFAULT false")
 
+
+# class taskHistory(Table):
+#     id = Column("id bigserial PRIMARY KEY NOT NULL")
+#     user_id = Column("user_id bigint NOT NULL")
+#     created = Column("created timestamp NOT NULL DEFAULT (now() at time zone 'utc')")
+#     missed_tasks = Column("missed_tasks bigint NOT NULL DEFAULT 0")
+#     completed_tasks = Column("completed_tasks bigint NOT NULL DEFAULT 0")
 
 NUMTOEMOTES = {
     0: "0️⃣",
@@ -67,9 +73,12 @@ class PaginatorSource(menus.ListPageSource):
             False: "\N{CROSS MARK}"
         }
         titles, values = [], []
-        for g in page:
-            titles.append(f"{checks[g.completed]} {'~~' if g.completed else ''}{g.name}{'~~' if g.completed else ''} {format_dt(g.next_reset(),'R')}")
-            values.append(f"```\nRepeats every {g.interval}\nCompleted: {g.completed}\nTime of reminder: {g.time}\nNext reminder: {human_timedelta(g.next_reset())}\n```")
+        for x, g in enumerate(page):
+            titles.append(f"{NUMTOEMOTES[x + 1]} {'~~' if g.completed else ''}{g.name}{'~~' if g.completed else ''} - {format_dt(g.next_reset(),'R')}")
+            values.append(f"Repeats every {g.interval}\n"
+                          f"Completed: {checks[g.completed]}\n"
+                          f"Time of reminder: {g.time}\n")
+
         return embed(
             title="Your tasks",
             fieldstitle=titles,
@@ -198,7 +207,7 @@ class TaskTracker(commands.Cog):
         to_return = []
         for record in records:
             to_return.append(Task(record=record))
-        return to_return
+        return sorted(to_return, key=lambda x: x.next_reset())
 
     @commands.Cog.listener()
     async def on_task_reset_timer_complete(self, timer: Timer):
@@ -248,8 +257,14 @@ class TaskTracker(commands.Cog):
             log.info(f"Sent reminder to {user} for task {task.id}")
 
     @commands.hybrid_group(fallback="display", invoke_without_command=True, case_insensitive=True)
-    async def tasks(self, ctx: Context, *, type: TaskDisplayIntervals = TaskDisplayIntervals.all):
+    async def tasks(self, ctx: Context, *, task: app_commands.Transform[Optional[Task], TaskConverter] = None):
         """Displays all your tasks."""
+
+        if task is not None:
+            source = PaginatorSource(entries=[task])
+            e = await source.format_page(None, [task])  # type: ignore
+            await ctx.send(embed=e)
+            return
 
         tasks = await self.get_tasks(ctx.author.id)
 
@@ -265,7 +280,9 @@ class TaskTracker(commands.Cog):
     @app_commands.describe(
         resets_every="How often should this task remind you?",
         start_time="What time of day should this task begin?",
-        task_name="What is your task?")
+        task_name="What is your task?",
+        remind_me="Should I remind you when this task is due?",
+    )
     async def tasks_add(
             self,
             ctx: Context,
@@ -355,8 +372,8 @@ class TaskTracker(commands.Cog):
             return await ctx.send('Sorry, this functionality is currently unavailable. Try again later?', ephemeral=True)
 
         query = """DELETE FROM taskstracked
-                WHERE id = $1;"""
-        await ctx.db.execute(query, task.id)
+                WHERE id = $1 and user_id = $2;"""
+        await ctx.db.execute(query, task.id, ctx.author.id)
         query = """DELETE FROM reminders
                 WHERE event='task_reset'
                 AND extra #>> '{args,0}' = $1 RETURNING id;"""
