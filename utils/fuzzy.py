@@ -12,8 +12,10 @@ def autocomplete(arr: list[Choice], value: str | float | int) -> list[Choice]:
     choices = []
     for x, c in enumerate(arr):
         c.name = textwrap.shorten(c.name, width=100)
-        if c.value.lower() == str(value).lower() or str(value).lower() in c.value.lower():
+        if c.value.lower() == str(value).lower() or str(value).lower().startswith(c.value.lower()) or str(value).lower().endswith(c.value.lower()):
             choices.append((0, c))
+        if str(value).lower() in c.value.lower():
+            choices.append((1, c))
         if levenshtein_ratio_and_distance(str(value), str(arr[x].value)) >= 0.8 and (0, c) not in choices:
             choices.append((levenshtein_ratio_and_distance(str(value), str(arr[x].value)), c))
 
