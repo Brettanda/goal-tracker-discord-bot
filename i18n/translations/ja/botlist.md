@@ -1,3 +1,3 @@
-# Goal Tracker
+# ゴールトラッカー
 
-Keep track of your life goals, with daily/weekly/monthly/etc. resetting checklists and reminders.
+毎日/毎週/毎月/毎月/などのチェックリストとリマインダーをリセットして、あなたの人生の目標を追跡してください。
