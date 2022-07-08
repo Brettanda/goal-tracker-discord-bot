@@ -78,14 +78,6 @@ class Info(commands.Cog):
         latency = f"{shard.latency*1000:,.0f}" if shard is not None else f"{self.bot.latency*1000:,.0f}"
         await ctx.send(ctx.lang["info"]["ping"].format(latency))
 
-    def get_bot_uptime(self, *, brief: bool = False) -> str:
-        return human_timedelta(self.bot.uptime, accuracy=None, brief=brief, suffix=False)
-
-    @commands.hybrid_command(name="uptime")
-    async def uptime(self, ctx: Context):
-        """Uptime!"""
-        await ctx.send(f"Uptime: **{self.get_bot_uptime()}**")
-
     @cached_property
     def link(self):
         return oauth_url(self.bot.user.id, permissions=INVITE_PERMISSIONS, scopes=["bot", "applications.commands"])
