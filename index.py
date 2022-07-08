@@ -53,7 +53,6 @@ class AutoShardedBot(commands.AutoShardedBot):
             intents=discord.Intents(
                 guilds=True,
                 messages=True,
-                message_content=True
             ),
             chunk_guilds_at_startup=False,
             **kwargs
