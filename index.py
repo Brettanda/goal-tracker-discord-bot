@@ -25,6 +25,7 @@ from utils.time import human_timedelta
 
 if TYPE_CHECKING:
     from cogs.reminder import Reminder
+    from i18n import I18n
 
 
 log = logging.getLogger()
@@ -79,7 +80,7 @@ class AutoShardedBot(commands.AutoShardedBot):
 
         self.pool = await Table.create_pool(config.postgresql)
 
-        self.language_files: dict[str, ReadOnly[Any]] = {
+        self.language_files: dict[str, I18n] = {  # type: ignore
             "en": ReadOnly("i18n/source/main.json", loop=self.loop),
             **{name: ReadOnly(f"i18n/translations/{name}/main.json", loop=self.loop)
                for name in os.listdir("./i18n/translations")}
