@@ -83,14 +83,21 @@ class Info(commands.Cog):
         return oauth_url(self.bot.user.id, permissions=INVITE_PERMISSIONS, scopes=["bot", "applications.commands"])
 
     @commands.hybrid_command("invite")
-    async def _invite(self, ctx: Context):
+    async def invite(self, ctx: Context):
         """Get the invite link to add me to your server"""
         await ctx.send(embed=embed(title="Invite me :)"), view=InviteButtons(self.link))
 
     @commands.hybrid_command(name="support")
-    async def _support(self, ctx: Context):
+    async def support(self, ctx: Context):
         """Get an invite link to my support server"""
         await ctx.send(SUPPORT_SERVER_INVITE)
+
+    @commands.hybrid_command(name="languages")
+    async def languages(self, ctx: Context):
+        """Get a list of languages I support"""
+        crowdin = discord.ui.View()
+        crowdin.add_item(discord.ui.Button(label="Crowdin Page", url="https://crwd.in/goal-tracker-discord-bot"))
+        await ctx.send(ctx.lang["info"]["languages"].format(self.bot.user.display_name, '\n'.join([n['_lang_name'] for n in self.bot.language_files.values()])), view=crowdin)
 
 
 async def setup(bot: AutoShardedBot):

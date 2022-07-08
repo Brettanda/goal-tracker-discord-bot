@@ -4,5 +4,6 @@
   "_translator": "Motostar#0001",
   "info": {
     "ping": "Ping!\n⏳ API is {}ms",
+    "languages": "{} has localization support for the following languages: \n```\n{}\n```If you don't see your native language in this list you can contribute on the Crowdin page"
   }
 }
