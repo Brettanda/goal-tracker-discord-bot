@@ -7,3 +7,4 @@ All of the features that I would like to add to the bot
 - [ ] Option to make my goals public or private. Private would have ephemeral messages in servers.
 - [ ] Task completion point system. Patron x2?
 - [ ] Task completion streaks?
+- [ ] Note taking
