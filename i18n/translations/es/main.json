@@ -3,28 +3,28 @@
   "_lang_emoji": "🇪🇸",
   "_translator": "Motostar#0001",
   "errors": {
-    "invalid_user": "Invalid user. Please mention a user or provide a user ID.",
-    "cooldown": "This command is on a cooldown, and will be available in `{}` or <t:{}:R>",
-    "no_private_message": "This command does not work in non-server text channels",
-    "overflow": "An arguments number is too large."
+    "invalid_user": "Usuario no válido. Por favor, mencione un usuario o proporcione un ID de usuario.",
+    "cooldown": "Este comando está en enfriamiento, y estará disponible en `{}` o <t:{}:R>",
+    "no_private_message": "Este comando no funciona en canales de texto que no sean servidores",
+    "overflow": "Un número de argumentos es demasiado grande."
   },
   "info": {
-    "ping": "Ping!\n⏳ API is {}ms",
-    "languages": "{} has localization support for the following languages: \n```\n{}\n```If you don't see your native language in this list you can contribute on the Crowdin page"
+    "ping": "¡Ping!\n⏳ API es {}ms",
+    "languages": "{} tiene soporte de localización para los siguientes idiomas: \n```\n{}\n```Si no ves tu idioma nativo en esta lista puedes contribuir en la página de Crowdin"
   },
   "reminder": {
-    "set": "Reminder set {}\n{}",
-    "empty": "You have no reminders.",
-    "not_found": "No reminder found",
-    "list_title": "Reminders",
+    "set": "Recordatorio {}\n{}",
+    "empty": "No tienes recordatorios.",
+    "not_found": "Recordatorio no encontrado",
+    "list_title": "Recordatorios",
     "delete": {
-      "missing": "You have no reminder with that ID.",
-      "deleted": "Reminder deleted."
+      "missing": "No tienes ningún recordatorio con ese ID.",
+      "deleted": "Recordatorio eliminado."
     },
     "clear": {
-      "prompt": "Are you sure you want to delete {}?",
-      "cancelled": "Cancelled.",
-      "success": "Successfully deleted {}."
+      "prompt": "¿Está seguro que desea eliminar {}?",
+      "cancelled": "Cancelado.",
+      "success": "Eliminado con éxito {}."
     }
   }
 }
