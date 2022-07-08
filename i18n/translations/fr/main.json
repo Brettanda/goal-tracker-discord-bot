@@ -1,5 +1,8 @@
 {
-  "_lang_name": "Français",
-  "_lang_emoji": "🇫🇷",
-  "_translator": "Motostar#0001"
+  "_lang_name": "English",
+  "_lang_emoji": "🇺🇸",
+  "_translator": "Motostar#0001",
+  "info": {
+    "ping": "Ping!\n⏳ API is {}ms"
+  }
 }
