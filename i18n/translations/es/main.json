@@ -1,5 +1,30 @@
 {
   "_lang_name": "Español",
   "_lang_emoji": "🇪🇸",
-  "_translator": "Motostar#0001"
+  "_translator": "Motostar#0001",
+  "errors": {
+    "invalid_user": "Invalid user. Please mention a user or provide a user ID.",
+    "cooldown": "This command is on a cooldown, and will be available in `{}` or <t:{}:R>",
+    "no_private_message": "This command does not work in non-server text channels",
+    "overflow": "An arguments number is too large."
+  },
+  "info": {
+    "ping": "Ping!\n⏳ API is {}ms",
+    "languages": "{} has localization support for the following languages: \n```\n{}\n```If you don't see your native language in this list you can contribute on the Crowdin page"
+  },
+  "reminder": {
+    "set": "Reminder set {}\n{}",
+    "empty": "You have no reminders.",
+    "not_found": "No reminder found",
+    "list_title": "Reminders",
+    "delete": {
+      "missing": "You have no reminder with that ID.",
+      "deleted": "Reminder deleted."
+    },
+    "clear": {
+      "prompt": "Are you sure you want to delete {}?",
+      "cancelled": "Cancelled.",
+      "success": "Successfully deleted {}."
+    }
+  }
 }
