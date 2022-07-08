@@ -34,6 +34,13 @@ class Info(commands.Cog):
         self.bot: AutoShardedBot = bot
         self.process = psutil.Process()
 
+        bot.add_check(
+            commands.bot_has_permissions(
+                send_messages=True,
+                send_messages_in_threads=True,
+                embed_links=True,
+            ).predicate)
+
     def __repr__(self) -> str:
         return f"<cogs.{self.__cog_name__}>"
 
