@@ -2,14 +2,14 @@
 
 毎日/毎週/毎月/毎月/などのチェックリストとリマインダーをリセットして、あなたの人生の目標を追跡してください。
 
-## Reminders
+## リマインダー
 
-Reminders let you set one-time message to be sent back to you after a set time.
+リマインダーを使用すると、設定された時間の後に返信されるワンタイムメッセージを設定できます。
 
-## Tasks
+## タスク
 
-Tasks let you set repeating reminders that reset its completion value back to un-completed after a set interval and start time. This let's you have daily/monthly/etc. reminders to do the tasks that you don't want to forget about.
+タスクでは、設定された間隔と開始時間の後に完了値を未完了にリセットする繰り返しリマインダーを設定できます。 これは、忘れたくないタスクを行うために毎日/毎月/毎月のリマインダーなどを持っています。
 
-## Localization
+## 地域化
 
-This bot has localization out of the box. To see if your language is supported run the `/languages` command, or checkout the [Crowdin](https://crwd.in/goal-tracker-discord-bot) page, where you can also contribute translations in your native language.
+このBotはすぐにローカライズされています。 To see if your language is supported run the `/languages` command, or checkout the [Crowdin](https://crwd.in/goal-tracker-discord-bot) page, where you can also contribute translations in your native language.
