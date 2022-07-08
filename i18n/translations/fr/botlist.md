@@ -1,3 +1,3 @@
-# Goal Tracker
+# Traqueur d'Objectifs
 
-Keep track of your life goals, with daily/weekly/monthly/etc. resetting checklists and reminders.
+Gardez une trace de vos objectifs de vie, avec des listes de contrôle et des rappels quotidiens/hebdomadaires/mensuels/etc.
