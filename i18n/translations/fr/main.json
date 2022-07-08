@@ -3,28 +3,28 @@
   "_lang_emoji": "🇫🇷",
   "_translator": "Motostar#0001",
   "errors": {
-    "invalid_user": "Invalid user. Please mention a user or provide a user ID.",
-    "cooldown": "This command is on a cooldown, and will be available in `{}` or <t:{}:R>",
-    "no_private_message": "This command does not work in non-server text channels",
-    "overflow": "An arguments number is too large."
+    "invalid_user": "Utilisateur non valide. Veuillez mentionner un utilisateur ou fournir un ID d'utilisateur.",
+    "cooldown": "Cette commande est en rechargement, et sera disponible dans `{}` ou <t:{}:R>",
+    "no_private_message": "Cette commande ne fonctionne pas dans les salons texte non-serveur",
+    "overflow": "Un nombre d'arguments est trop grand."
   },
   "info": {
-    "ping": "Ping!\n⏳ API is {}ms",
-    "languages": "{} has localization support for the following languages: \n```\n{}\n```If you don't see your native language in this list you can contribute on the Crowdin page"
+    "ping": "Ping !\n⏳ L'API est {}ms",
+    "languages": "{} a le support de la localisation pour les langues suivantes : \n```\n{}\n```Si vous ne voyez pas votre langue native dans cette liste, vous pouvez contribuer sur la page Crowdin"
   },
   "reminder": {
-    "set": "Reminder set {}\n{}",
-    "empty": "You have no reminders.",
-    "not_found": "No reminder found",
-    "list_title": "Reminders",
+    "set": "Rappel défini {}\n{}",
+    "empty": "Vous n'avez aucun rappel.",
+    "not_found": "Aucun rappel trouvé",
+    "list_title": "Rappels",
     "delete": {
-      "missing": "You have no reminder with that ID.",
-      "deleted": "Reminder deleted."
+      "missing": "Vous n'avez aucun rappel avec cet identifiant.",
+      "deleted": "Rappel supprimé."
     },
     "clear": {
-      "prompt": "Are you sure you want to delete {}?",
-      "cancelled": "Cancelled.",
-      "success": "Successfully deleted {}."
+      "prompt": "Êtes-vous sûr de vouloir supprimer {} ?",
+      "cancelled": "Annulé.",
+      "success": "{} supprimé avec succès."
     }
   }
 }
