@@ -247,6 +247,14 @@ class AutoShardedBot(commands.AutoShardedBot):
     async def on_shard_reconnect(self, shard_id: int):
         log.info(f"Shard #{shard_id} has reconnected")
 
+    async def on_guild_join(self, guild: discord.Guild):
+        await self.wait_until_ready()
+        log.info(f"I have joined a new guild, making the total **{len(self.guilds)}**")
+
+    async def on_guild_remove(self, guild: discord.Guild):
+        await self.wait_until_ready()
+        log.info(f"I have been removed from a guild, making the total **{len(self.guilds)}**")
+
     async def on_message(self, msg: discord.Message):
         if msg.author.bot:
             return
