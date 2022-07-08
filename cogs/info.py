@@ -76,7 +76,7 @@ class Info(commands.Cog):
         """Pong!"""
         shard = ctx.guild and self.bot.get_shard(ctx.guild.shard_id)
         latency = f"{shard.latency*1000:,.0f}" if shard is not None else f"{self.bot.latency*1000:,.0f}"
-        await ctx.send(f"Ping!\n⏳ API is {latency}ms")
+        await ctx.send(ctx.lang["info"]["ping"].format(latency))
 
     def get_bot_uptime(self, *, brief: bool = False) -> str:
         return human_timedelta(self.bot.uptime, accuracy=None, brief=brief, suffix=False)

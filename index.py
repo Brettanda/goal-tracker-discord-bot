@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import datetime
 import logging
+import os
 import sys
 import traceback
 from collections import Counter, defaultdict
@@ -16,7 +17,7 @@ from discord.ext import commands
 
 import cogs
 import config
-from utils.config import Config
+from utils.config import Config, ReadOnly
 from utils.context import Context
 from utils.db import Table
 from utils.logging import setup_logging
@@ -78,6 +79,12 @@ class AutoShardedBot(commands.AutoShardedBot):
 
         self.pool = await Table.create_pool(config.postgresql)
 
+        self.language_files: dict[str, ReadOnly[Any]] = {
+            "en": ReadOnly("i18n/source/main.json", loop=self.loop),
+            **{name: ReadOnly(f"i18n/translations/{name}/main.json", loop=self.loop)
+               for name in os.listdir("./i18n/translations")}
+        }
+        self.languages: Config[str] = Config("languages.json", loop=self.loop)
         self.prefixes: Config[str] = Config("prefixes.json", loop=self.loop)
         self.timezones: Config[str] = Config("timezones.json", loop=self.loop)
         self.blacklist: Config[bool] = Config("blacklist.json", loop=self.loop)
