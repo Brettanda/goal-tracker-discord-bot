@@ -1,5 +1,30 @@
 {
   "_lang_name": "Français",
   "_lang_emoji": "🇫🇷",
-  "_translator": "Motostar#0001"
+  "_translator": "Motostar#0001",
+  "errors": {
+    "invalid_user": "Utilisateur non valide. Veuillez mentionner un utilisateur ou fournir un ID d'utilisateur.",
+    "cooldown": "Cette commande est en rechargement, et sera disponible dans `{}` ou <t:{}:R>",
+    "no_private_message": "Cette commande ne fonctionne pas dans les salons texte non-serveur",
+    "overflow": "Un nombre d'arguments est trop grand."
+  },
+  "info": {
+    "ping": "Ping !\n⏳ L'API est {}ms",
+    "languages": "{} a le support de la localisation pour les langues suivantes : \n```\n{}\n```Si vous ne voyez pas votre langue native dans cette liste, vous pouvez contribuer sur la page Crowdin"
+  },
+  "reminder": {
+    "set": "Rappel défini {}\n{}",
+    "empty": "Vous n'avez aucun rappel.",
+    "not_found": "Aucun rappel trouvé",
+    "list_title": "Rappels",
+    "delete": {
+      "missing": "Vous n'avez aucun rappel avec cet identifiant.",
+      "deleted": "Rappel supprimé."
+    },
+    "clear": {
+      "prompt": "Êtes-vous sûr de vouloir supprimer {} ?",
+      "cancelled": "Annulé.",
+      "success": "{} supprimé avec succès."
+    }
+  }
 }

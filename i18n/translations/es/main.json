@@ -1,5 +1,30 @@
 {
   "_lang_name": "Español",
   "_lang_emoji": "🇪🇸",
-  "_translator": "Motostar#0001"
+  "_translator": "Motostar#0001",
+  "errors": {
+    "invalid_user": "Usuario no válido. Por favor, mencione un usuario o proporcione un ID de usuario.",
+    "cooldown": "Este comando está en enfriamiento, y estará disponible en `{}` o <t:{}:R>",
+    "no_private_message": "Este comando no funciona en canales de texto que no sean servidores",
+    "overflow": "Un número de argumentos es demasiado grande."
+  },
+  "info": {
+    "ping": "¡Ping!\n⏳ API es {}ms",
+    "languages": "{} tiene soporte de localización para los siguientes idiomas: \n```\n{}\n```Si no ves tu idioma nativo en esta lista puedes contribuir en la página de Crowdin"
+  },
+  "reminder": {
+    "set": "Recordatorio {}\n{}",
+    "empty": "No tienes recordatorios.",
+    "not_found": "Recordatorio no encontrado",
+    "list_title": "Recordatorios",
+    "delete": {
+      "missing": "No tienes ningún recordatorio con ese ID.",
+      "deleted": "Recordatorio eliminado."
+    },
+    "clear": {
+      "prompt": "¿Está seguro que desea eliminar {}?",
+      "cancelled": "Cancelado.",
+      "success": "Eliminado con éxito {}."
+    }
+  }
 }
