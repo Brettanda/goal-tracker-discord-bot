@@ -100,3 +100,62 @@ class Config(Generic[_T]):
 
     def all(self) -> Dict[str, Union[_T, Any]]:
         return self._db
+
+
+class ReadOnly(Generic[_T]):
+    """The "database" object. Internally based on ``json``."""
+
+    def __init__(
+        self,
+        name: str,
+        *,
+        object_hook: Optional[ObjectHook] = None,
+        encoder: Optional[Type[json.JSONEncoder]] = None,
+        loop: asyncio.AbstractEventLoop,
+        load_later: bool = False,
+    ):
+        self.name = name
+        self.object_hook = object_hook
+        self.encoder = encoder
+        self.loop = loop
+        self.lock = asyncio.Lock()
+        self._db: Dict[str, Union[_T, Any]] = {}
+        if load_later:
+            self.loop.create_task(self.load())
+        else:
+            self.load_from_file()
+
+    def load_from_file(self):
+        try:
+            with open(self.name, 'r') as f:
+                self._db = json.load(f, object_hook=self.object_hook)
+        except FileNotFoundError:
+            self._db = {}
+
+    async def load(self):
+        async with self.lock:
+            await self.loop.run_in_executor(None, self.load_from_file)
+
+    @overload
+    def get(self, key: Any) -> Optional[Union[_T, Any]]:
+        ...
+
+    @overload
+    def get(self, key: Any, default: Any) -> Union[_T, Any]:
+        ...
+
+    def get(self, key: Any, default: Any = None) -> Optional[Union[_T, Any]]:
+        """Retrieves a config entry."""
+        return self._db.get(str(key), default)
+
+    def __contains__(self, item: Any) -> bool:
+        return str(item) in self._db
+
+    def __getitem__(self, item: Any) -> Union[_T, Any]:
+        return self._db[str(item)]
+
+    def __len__(self) -> int:
+        return len(self._db)
+
+    def all(self) -> Dict[str, Union[_T, Any]]:
+        return self._db
