@@ -324,10 +324,16 @@ class Dev(commands.Cog, command_attrs=dict(hidden=True)):
                 else:
                     statuses.append((":white_check_mark:", module))
 
+        await self.bot.tree.sync()
         await ctx.send(embed=embed(title="Reloading modules", description="\n".join(f"{status} {module}" for status, module in statuses)))
         # async with ctx.typing():
         #   await self.bot.reload_cogs()
         # await ctx.reply(embed=embed(title="All cogs have been reloaded"))
+
+    @reload.command("slash")
+    async def reload_slash(self, ctx: Context):
+        await self.bot.tree.sync()
+        await ctx.send(embed=embed(title="Slash commands reloaded"))
 
     @reload.command("module")
     async def reload_module(self, ctx: Context, *, module: str):

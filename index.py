@@ -102,7 +102,6 @@ class AutoShardedBot(commands.AutoShardedBot):
             TESTING_SERVER = discord.Object(id=config.dev_server)
             self.tree.copy_global_to(guild=TESTING_SERVER)
             await self.tree.sync(guild=TESTING_SERVER)
-        await self.tree.sync()
 
     async def get_context(self, origin: discord.Message | discord.Interaction, /, *, cls=None) -> Context:
         return await super().get_context(origin, cls=cls or Context)
