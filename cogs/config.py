@@ -63,7 +63,7 @@ class Config(commands.Cog, command_attrs=dict(extras={"permissions": ["manage_gu
         """Sets the timezone for a specific user."""
         if timezone is None:
             tz = self.bot.get_timezone(ctx.author.id, default=None)
-            return await ctx.send(f"Current timezone: `{tz}`")
+            return await ctx.send(f"Current timezone: `{tz}`", ephemeral=True)
         now = ctx.message.created_at.astimezone(timezone).strftime("%I:%M:%S %p")
         await self.bot.timezones.put(ctx.author.id, str(timezone))
         await ctx.send(f"Setting timezone to `{timezone}` where it is currently `{now}`", ephemeral=True)
@@ -75,7 +75,7 @@ class Config(commands.Cog, command_attrs=dict(extras={"permissions": ["manage_gu
         """Sets the default timezone for the server"""
         if timezone is None:
             tz = self.bot.get_timezone(ctx.guild and ctx.guild.id, default=None)
-            return await ctx.send(f"Current timezone: `{tz}`")
+            return await ctx.send(f"Current timezone: `{tz}`", ephemeral=True)
         now = ctx.message.created_at.astimezone(timezone).strftime("%I:%M:%S %p")
         await self.bot.timezones.put(ctx.guild.id, str(timezone))
         await ctx.send(f"Setting timezone to `{timezone}` where it is currently `{now}`", ephemeral=True)
@@ -95,6 +95,30 @@ class Config(commands.Cog, command_attrs=dict(extras={"permissions": ["manage_gu
 
     #     await updates_channel.follow(destination=channel, reason=f"Called updates command, for {self.bot.user} updates")
     #     await ctx.send("Updates channel followed")
+
+    # @commands.hybrid_command(name="language", aliases=["lang"])
+    # # @commands.cooldown(1, 3600, commands.BucketType.guild)
+    # @commands.has_guild_permissions(manage_guild=True)
+    # @app_commands.describe(language="Select the language you would like me to speak in")
+    # @app_commands.choices(language=[
+    #     app_commands.Choice(name="English", value="en"),
+    #     app_commands.Choice(name="Español", value="es"),
+    #     app_commands.Choice(name="Français", value="fr"),
+    #     app_commands.Choice(name="日本語", value="ja"),
+    # ])
+    # async def language(self, ctx: GuildContext, language: app_commands.Choice[str] = None):
+    #     """Change the language that I will speak"""
+    #     if language is None:
+    #         return await ctx.send(ctx.lang["config"]["language"]["current_lang"], ephemeral=True)
+
+    #     await self.bot.languages.put(ctx.guild.id, language.value)
+    #     await ctx.send(ctx.lang["config"]["language"]["new_lang"].format(language.name))
+    # "config": {
+    #     "language": {
+    #     "current_lang": "Current language: `English`",
+    #     "new_lang": "New language: `{}`"
+    #     }
+    # },
 
 
 async def setup(bot: AutoShardedBot):
