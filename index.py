@@ -147,20 +147,20 @@ class AutoShardedBot(commands.AutoShardedBot):
             else:
                 await ctx.send(str(error), ephemeral=True)
         elif isinstance(error, commands.BadUnionArgument) and "into Member or User." in str(error):
-            await ctx.send("Invalid user. Please mention a user or provide a user ID.")
+            await ctx.send(ctx.lang["errors"]["invalid_user"], ephemeral=True)
         elif isinstance(error, (commands.MissingRequiredArgument, commands.TooManyArguments)):
             await ctx.send_help(ctx.command)
         elif isinstance(error, commands.CommandOnCooldown):
             retry_after = discord.utils.utcnow() + datetime.timedelta(seconds=error.retry_after)
-            await ctx.send(f"This command is on a cooldown, and will be available in `{human_timedelta(retry_after)}` or <t:{int(retry_after.timestamp())}:R>", ephemeral=True)
+            await ctx.send(ctx.lang["errors"]["cooldown"].format(human_timedelta(retry_after), int(retry_after.timestamp())), ephemeral=True)
         # elif isinstance(error, (exceptions.RequiredTier, exceptions.NotInSupportServer)):
         #     await ctx.send(str(error), ephemeral=True)
         elif isinstance(error, commands.CheckFailure):
             log.warning(f"{ctx.guild and ctx.guild.id or 'Private Message'} {ctx.channel} {ctx.author} {error}")
         elif isinstance(error, commands.NoPrivateMessage):
-            await ctx.send("This command does not work in non-server text channels", ephemeral=True)
+            await ctx.send(ctx.lang["errors"]["no_private_message"], ephemeral=True)
         elif isinstance(error, OverflowError):
-            await ctx.send("An arguments number is too large.", ephemeral=True)
+            await ctx.send(ctx.lang["errors"]["overflow"], ephemeral=True)
         elif isinstance(error, commands.CommandInvokeError):
             original = error.original
             if not isinstance(original, discord.HTTPException):
