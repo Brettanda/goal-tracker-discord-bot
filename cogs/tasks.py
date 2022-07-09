@@ -18,7 +18,7 @@ from utils.embed import embed
 from utils.fuzzy import autocomplete
 from utils.time import ADT, NDT, NT, Interval, TimeOfDay, format_dt
 
-from .goals import Goal, GoalConverter
+from .goals import Goal, GoalConverter, GoalTracker
 
 if TYPE_CHECKING:
     from index import AutoShardedBot
@@ -320,7 +320,7 @@ class TaskTracker(commands.Cog):
         self.get_tasks.invalidate(self, ctx.author.id)
         await ctx.send(f"task `{task.name}` completed!", ephemeral=True)
 
-    @tasks.command(name="change", aliases=["modify"])
+    @tasks.command(name="modify", aliases=["change"])
     async def tasks_change(
         self,
         ctx: Context,
@@ -374,6 +374,9 @@ class TaskTracker(commands.Cog):
             task.id
         )
         self.get_tasks.invalidate(self, ctx.author.id)
+        goals: Optional[GoalTracker] = self.bot.get_cog("GoalTracker")  # type: ignore
+        if goals is not None:
+            goals.get_goals.invalidate(goals, ctx.author.id)
         await ctx.send(f"task `{task.name}` changed!", ephemeral=True)
 
     @tasks.command(name="delete", aliases=["remove"])

@@ -19,15 +19,22 @@ if TYPE_CHECKING:
     from utils.context import Context
 
     from .reminder import Timer
-    from .tasks import Task  # , TaskTracker
+    from .tasks import Task, TaskTracker
 
 
 class GoalsTracked(Table):
     id = Column("id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY")
     user_id = Column("user_id bigint NOT NULL")
     created = Column("created timestamp NOT NULL DEFAULT (now() at time zone 'utc')")
-    goal = Column("goal text NOT NULL")
+    name = Column("name text NOT NULL")
     expires = Column("expires timestamp")
+
+
+def bar(*, iteration: int = 0, total: int = 0, length: int = 25, decimals: int = 1, fill: str = "█") -> str:
+    percent = ("{0:." + str(decimals if iteration != total else 0) + "f}").format(100 * (iteration / float(max(total, 1))))
+    filledLength = int(length * iteration // max(total, 1))
+    bar = fill * filledLength + '░' * (length - filledLength)
+    return f"\r |{bar}| {percent}% ({iteration}/{total})"
 
 
 NUMTOEMOTES = {
@@ -57,11 +64,13 @@ class PaginatorSource(menus.ListPageSource):
         titles, values = [], []
         for x, g in enumerate(page):
             expires = f" - {format_dt(g.expires,'R')}" if g.expires else ""
-            titles.append(f"{NUMTOEMOTES[x + 1]} {'~~' if g.completed else ''}{g.goal}{'~~' if g.completed else ''}{expires}")
-            values.append(f"Completed: {checks[g.completed]}\n"
-                          f"{'Tasks: ' + str(g.goal) if g.goal else ''}")
+            titles.append(f"{NUMTOEMOTES[x + 1]} {'~~' if g.completed else ''}{g.name}{'~~' if g.completed else ''}{expires}")
+            tasks_list = 'Tasks: ```\n' + "\n".join([t.name for t in g.tasks]) + "\n```" if g.tasks is not None else ''
+            values.append(f"Completed: {checks[g.is_completed()]}\n"
+                          f"{tasks_list}"
+                          f"{bar(iteration=g.completed, total=len(g.tasks)) if g.tasks else ''}")
         return embed(
-            title="Your tasks",
+            title="Your goals",
             fieldstitle=titles,
             fieldsval=values,
             fieldsin=[False] * len(titles),
@@ -72,29 +81,33 @@ class PaginatorSource(menus.ListPageSource):
 
 
 class Goal:
-    __slots__ = ("id", "user_id", "created", "goal", "expires", "tasks",)
+    __slots__ = ("id", "user_id", "created", "name", "expires", "tasks",)
 
     def __init__(self, *, record: asyncpg.Record, tasks: list[Task] = None) -> None:
         self.id: int = record["id"]
         self.user_id: int = record["user_id"]
         self.created: NDT = record["created"]
-        self.goal: str = record["goal"]
+        self.name: str = record["name"]
         self.expires: Optional[NDT] = record["expires"]
         self.tasks = tasks
 
     @property
     def progress(self) -> float:
         if not self.tasks:
-            return 0
-        completed = len([t for t in self.tasks if t.completed is True])
-        return completed / len(self.tasks)
+            return 0.0
+        return self.completed / len(self.tasks)
 
     @property
-    def completed(self) -> bool:
+    def completed(self) -> int:
+        if not self.tasks:
+            return 0
+        return len([t for t in self.tasks if t.completed is True])
+
+    def is_completed(self) -> bool:
         return self.progress == 1.0
 
     def __repr__(self) -> str:
-        return f"<Goal id={self.id} goal={self.goal}>"
+        return f"<Goal id={self.id} name={self.name}>"
 
 
 class GoalConverter(commands.Converter, app_commands.Transformer):
@@ -106,7 +119,7 @@ class GoalConverter(commands.Converter, app_commands.Transformer):
             return next(g for g in goals if str(g.id) == argument)
         except StopIteration:
             try:
-                return next(g for g in goals if str(g.goal) == argument)
+                return next(g for g in goals if str(g.name) == argument)
             except StopIteration:
                 raise commands.BadArgument("No goal found.")
 
@@ -119,7 +132,7 @@ class GoalConverter(commands.Converter, app_commands.Transformer):
             return next(g for g in goals if str(g.id) == value)
         except StopIteration:
             try:
-                return next(g for g in goals if str(g.goal) == value)
+                return next(g for g in goals if str(g.name) == value)
             except StopIteration:
                 raise commands.BadArgument("No goal found.")
 
@@ -128,7 +141,7 @@ class GoalConverter(commands.Converter, app_commands.Transformer):
         cog: GoalTracker = interaction.client.get_cog("GoalTracker")  # type: ignore
         goals: list[Goal] = await cog.get_goals(interaction.user.id)
 
-        return autocomplete([app_commands.Choice(name=g.goal, value=str(g.id)) for g in goals], value)
+        return autocomplete([app_commands.Choice(name=g.name, value=str(g.id)) for g in goals], value)
 
 
 class GoalTracker(commands.Cog):
@@ -144,17 +157,26 @@ class GoalTracker(commands.Cog):
         query = "SELECT * FROM goalstracked WHERE user_id = $1"
         records = await conn.fetch(query, user_id)
         to_return = []
+        tasktracker: Optional[TaskTracker] = self.bot.get_cog("TaskTracker")  # type: ignore
+        tasks = tasktracker and await tasktracker.get_tasks(user_id, connection=conn)
         for record in records:
-            to_return.append(Goal(record=record))
+            goal_tasks = tasks and [t for t in tasks if t.goal == record["id"]]
+            to_return.append(Goal(record=record, tasks=goal_tasks))
         return sorted(to_return, key=lambda x: x.expires or x.created)
 
     @commands.Cog.listener()
-    async def on_goals_send_reminder_timer_complete(self, timer: Timer):
-        ...
+    async def on_goal_expires_timer_complete(self, timer: Timer):
+        author_id, goal_id = timer.args
+        await self.bot.wait_until_ready()
+
+        goals = await self.get_goals(author_id)
+        goal: Optional[Goal] = next(g for g in goals if g.id == goal_id)
+        if goal is None:
+            return
 
     @commands.hybrid_group(fallback="display", invoke_without_command=True, case_insensitive=True)
     async def goals(self, ctx: Context, *, goal: app_commands.Transform[Optional[Goal], GoalConverter] = None):
-        """Displays all your goals."""
+        """Displays all or one of your goals."""
 
         if goal is not None:
             source = PaginatorSource(entries=[goal])
@@ -181,13 +203,84 @@ class GoalTracker(commands.Cog):
         name: str
     ):
         """Add a goal for your tasks"""
-        query = "INSERT INTO goalstracked (user_id, goal, expires) VALUES ($1, $2, $3) RETURNING *"
+        reminder = self.bot.reminder
+        if reminder is None and expires is not None:
+            return await ctx.send('Sorry, this functionality is currently unavailable. Try again later?', ephemeral=True)
+        query = "INSERT INTO goalstracked (user_id, name, expires) VALUES ($1, $2, $3) RETURNING *"
         record = await ctx.db.fetchrow(query, ctx.author.id, name, expires)
         goal = Goal(record=record)
-        await ctx.send(f"Added goal {goal.goal}")
+        if reminder and goal.expires:
+            await reminder.create_timer(goal.expires, "goal_expires", ctx.author.id, goal.id)
+        await ctx.send(f"Added goal {goal.name}", ephemeral=True)
 
-    # @goals.command(name="delete",aliases=["remove"])
-    # async
+    @goals.command(name="modify")
+    async def goals_modify(
+        self,
+        ctx: Context,
+        goal: app_commands.Transform[Goal, GoalConverter],
+        expires: HumanTime = None,
+        name: str = None
+    ):
+        """ Modify and existing goal """
+        if expires is None and name is None:
+            await ctx.send("Nothing changed", ephemeral=True)
+            return
+
+        query = "UPDATE goalstracked SET "
+        options = []
+        params = []
+        x = 1
+        if expires is not None:
+            options.append(f"expires = ${x}")
+            params.append(expires and expires.dt)
+            x += 1
+        if name is not None:
+            options.append(f"name = ${x}")
+            params.append(name)
+            x += 1
+        query += ", ".join(options)
+        query += f" WHERE id = ${len(options) + 1}"
+
+        await ctx.db.execute(
+            query,
+            *params,
+            goal.id
+        )
+        self.get_goals.invalidate(self, ctx.author.id)
+        await ctx.send(f"Goal `{goal.name}` changed!", ephemeral=True)
+
+    @goals.command(name="delete", aliases=["remove"])
+    async def goals_delete(self, ctx: Context, goal: app_commands.Transform[Goal, GoalConverter]):
+        """Delete a goal"""
+        reminder = self.bot.reminder
+        if reminder is None:
+            return await ctx.send('Sorry, this functionality is currently unavailable. Try again later?', ephemeral=True)
+
+        query = """DELETE FROM goalstracked
+                WHERE id = $1 and user_id = $2;"""
+        await ctx.db.execute(query, goal.id, ctx.author.id)
+
+        query = """DELETE FROM reminders
+                WHERE event='goal_complete'
+                AND extra #>> '{args,0}' = $1 RETURNING id;"""
+        timer_id = await ctx.db.fetchval(query, str(goal.id))
+        if reminder._current_timer and reminder._current_timer.id == timer_id:
+            reminder._task.cancel()
+            reminder._task = self.bot.loop.create_task(reminder.dispatch_timers())
+
+        self.get_goals.invalidate(self, ctx.author.id)
+        await ctx.send(f"Goal `{goal.name}` deleted!", ephemeral=True)
+
+    @goals.command("clear")
+    async def tasks_clear(self, ctx: Context):
+        """Clear all of your goals"""
+        confirm = await ctx.prompt("Are you sure you want to clear all goals? This cannot be undone.")
+        if not confirm:
+            return await ctx.send("Cancelled.", ephemeral=True)
+
+        await ctx.db.execute("DELETE FROM goalstracked WHERE user_id = $1", ctx.author.id)
+        self.get_goals.invalidate(self, ctx.author.id)
+        await ctx.send("All goals cleared!", ephemeral=True)
 
 
 async def setup(bot: AutoShardedBot):
