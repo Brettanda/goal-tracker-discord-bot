@@ -18,7 +18,6 @@ SUPPORT_SERVER_INVITE = "https://discord.gg/PSgfZ5MzTg"
 
 INVITE_PERMISSIONS = discord.Permissions(
     send_messages=True,
-    send_messages_in_threads=True,
     embed_links=True,
 )
 
@@ -43,7 +42,6 @@ class Info(commands.Cog):
 
         return await commands.bot_has_permissions(
                 send_messages=True,
-                send_messages_in_threads=True,
                 embed_links=True,
         ).predicate(ctx)
 
