@@ -34,15 +34,18 @@ class Info(commands.Cog):
         self.bot: AutoShardedBot = bot
         self.process = psutil.Process()
 
-        bot.add_check(
-            commands.bot_has_permissions(
+    def __repr__(self) -> str:
+        return f"<cogs.{self.__cog_name__}>"
+
+    async def bot_check(self, ctx: Context) -> bool:
+        if ctx.guild is None:
+            return True
+
+        return await commands.bot_has_permissions(
                 send_messages=True,
                 send_messages_in_threads=True,
                 embed_links=True,
-            ).predicate)
-
-    def __repr__(self) -> str:
-        return f"<cogs.{self.__cog_name__}>"
+        ).predicate(ctx)
 
     @commands.hybrid_command(name="about", aliases=["info"])
     async def info(self, ctx: Context):
