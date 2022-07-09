@@ -110,6 +110,18 @@ class Context(commands.Context):
         return self.bot.get_timezone(self.author.id, self.guild and self.guild.id)
 
     @property
+    def lang_code(self) -> str:
+        if self.interaction:
+            if self.interaction.guild_locale is not None:
+                return self.interaction.guild_locale.value.split("-")[0]
+            return self.interaction.locale.value.split("-")[0]
+        return "en"
+
+    @property
+    def lang(self):
+        return self.bot.language_files.get(self.lang_code, self.bot.language_files["en"])
+
+    @property
     def session(self) -> ClientSession:
         return self.bot.session
 

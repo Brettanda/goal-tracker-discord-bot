@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import datetime
 import logging
+import os
 import sys
 import traceback
 from collections import Counter, defaultdict
@@ -16,7 +17,7 @@ from discord.ext import commands
 
 import cogs
 import config
-from utils.config import Config
+from utils.config import Config, ReadOnly
 from utils.context import Context
 from utils.db import Table
 from utils.logging import setup_logging
@@ -24,6 +25,7 @@ from utils.time import human_timedelta
 
 if TYPE_CHECKING:
     from cogs.reminder import Reminder
+    from i18n import I18n
 
 
 log = logging.getLogger()
@@ -51,13 +53,10 @@ class AutoShardedBot(commands.AutoShardedBot):
             intents=discord.Intents(
                 guilds=True,
                 messages=True,
-                message_content=True
             ),
             chunk_guilds_at_startup=False,
             **kwargs
         )
-
-        self.ready = False
 
         # shard_id: List[datetime.datetime]
         # shows the last attempted IDENTIFYs and RESUMEs
@@ -80,6 +79,12 @@ class AutoShardedBot(commands.AutoShardedBot):
 
         self.pool = await Table.create_pool(config.postgresql)
 
+        self.language_files: dict[str, I18n] = {  # type: ignore
+            "en": ReadOnly("i18n/source/main.json", loop=self.loop),
+            **{name: ReadOnly(f"i18n/translations/{name}/main.json", loop=self.loop)
+               for name in os.listdir("./i18n/translations")}
+        }
+        self.languages: Config[str] = Config("languages.json", loop=self.loop)
         self.prefixes: Config[str] = Config("prefixes.json", loop=self.loop)
         self.timezones: Config[str] = Config("timezones.json", loop=self.loop)
         self.blacklist: Config[bool] = Config("blacklist.json", loop=self.loop)
@@ -96,7 +101,6 @@ class AutoShardedBot(commands.AutoShardedBot):
             TESTING_SERVER = discord.Object(id=config.dev_server)
             self.tree.copy_global_to(guild=TESTING_SERVER)
             await self.tree.sync(guild=TESTING_SERVER)
-        await self.tree.sync()
 
     async def get_context(self, origin: discord.Message | discord.Interaction, /, *, cls=None) -> Context:
         return await super().get_context(origin, cls=cls or Context)
@@ -142,20 +146,20 @@ class AutoShardedBot(commands.AutoShardedBot):
             else:
                 await ctx.send(str(error), ephemeral=True)
         elif isinstance(error, commands.BadUnionArgument) and "into Member or User." in str(error):
-            await ctx.send("Invalid user. Please mention a user or provide a user ID.")
+            await ctx.send(ctx.lang["errors"]["invalid_user"], ephemeral=True)
         elif isinstance(error, (commands.MissingRequiredArgument, commands.TooManyArguments)):
             await ctx.send_help(ctx.command)
         elif isinstance(error, commands.CommandOnCooldown):
             retry_after = discord.utils.utcnow() + datetime.timedelta(seconds=error.retry_after)
-            await ctx.send(f"This command is on a cooldown, and will be available in `{human_timedelta(retry_after)}` or <t:{int(retry_after.timestamp())}:R>", ephemeral=True)
+            await ctx.send(ctx.lang["errors"]["cooldown"].format(human_timedelta(retry_after), int(retry_after.timestamp())), ephemeral=True)
         # elif isinstance(error, (exceptions.RequiredTier, exceptions.NotInSupportServer)):
         #     await ctx.send(str(error), ephemeral=True)
         elif isinstance(error, commands.CheckFailure):
             log.warning(f"{ctx.guild and ctx.guild.id or 'Private Message'} {ctx.channel} {ctx.author} {error}")
         elif isinstance(error, commands.NoPrivateMessage):
-            await ctx.send("This command does not work in non-server text channels", ephemeral=True)
+            await ctx.send(ctx.lang["errors"]["no_private_message"], ephemeral=True)
         elif isinstance(error, OverflowError):
-            await ctx.send("An arguments number is too large.", ephemeral=True)
+            await ctx.send(ctx.lang["errors"]["overflow"], ephemeral=True)
         elif isinstance(error, commands.CommandInvokeError):
             original = error.original
             if not isinstance(original, discord.HTTPException):
@@ -242,6 +246,14 @@ class AutoShardedBot(commands.AutoShardedBot):
 
     async def on_shard_reconnect(self, shard_id: int):
         log.info(f"Shard #{shard_id} has reconnected")
+
+    async def on_guild_join(self, guild: discord.Guild):
+        await self.wait_until_ready()
+        log.info(f"I have joined a new guild, making the total **{len(self.guilds)}**")
+
+    async def on_guild_remove(self, guild: discord.Guild):
+        await self.wait_until_ready()
+        log.info(f"I have been removed from a guild, making the total **{len(self.guilds)}**")
 
     async def on_message(self, msg: discord.Message):
         if msg.author.bot:

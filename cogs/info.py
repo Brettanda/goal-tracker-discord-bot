@@ -20,7 +20,6 @@ INVITE_PERMISSIONS = discord.Permissions(
     send_messages=True,
     send_messages_in_threads=True,
     embed_links=True,
-    add_reactions=True,
 )
 
 
@@ -37,6 +36,16 @@ class Info(commands.Cog):
 
     def __repr__(self) -> str:
         return f"<cogs.{self.__cog_name__}>"
+
+    async def bot_check(self, ctx: Context) -> bool:
+        if ctx.guild is None:
+            return True
+
+        return await commands.bot_has_permissions(
+                send_messages=True,
+                send_messages_in_threads=True,
+                embed_links=True,
+        ).predicate(ctx)
 
     @commands.hybrid_command(name="about", aliases=["info"])
     async def info(self, ctx: Context):
@@ -77,29 +86,28 @@ class Info(commands.Cog):
         """Pong!"""
         shard = ctx.guild and self.bot.get_shard(ctx.guild.shard_id)
         latency = f"{shard.latency*1000:,.0f}" if shard is not None else f"{self.bot.latency*1000:,.0f}"
-        await ctx.send(f"Ping!\n⏳ API is {latency}ms")
-
-    def get_bot_uptime(self, *, brief: bool = False) -> str:
-        return human_timedelta(self.bot.uptime, accuracy=None, brief=brief, suffix=False)
-
-    @commands.hybrid_command(name="uptime")
-    async def uptime(self, ctx: Context):
-        """Uptime!"""
-        await ctx.send(f"Uptime: **{self.get_bot_uptime()}**")
+        await ctx.send(ctx.lang["info"]["ping"].format(latency))
 
     @cached_property
     def link(self):
         return oauth_url(self.bot.user.id, permissions=INVITE_PERMISSIONS, scopes=["bot", "applications.commands"])
 
     @commands.hybrid_command("invite")
-    async def _invite(self, ctx: Context):
+    async def invite(self, ctx: Context):
         """Get the invite link to add me to your server"""
         await ctx.send(embed=embed(title="Invite me :)"), view=InviteButtons(self.link))
 
     @commands.hybrid_command(name="support")
-    async def _support(self, ctx: Context):
+    async def support(self, ctx: Context):
         """Get an invite link to my support server"""
         await ctx.send(SUPPORT_SERVER_INVITE)
+
+    @commands.hybrid_command(name="languages")
+    async def languages(self, ctx: Context):
+        """Get a list of languages I support"""
+        crowdin = discord.ui.View()
+        crowdin.add_item(discord.ui.Button(label="Crowdin Page", url="https://crwd.in/goal-tracker-discord-bot"))
+        await ctx.send(ctx.lang["info"]["languages"].format(self.bot.user.display_name, '\n'.join([n['_lang_name'] for n in self.bot.language_files.values()])), view=crowdin)
 
 
 async def setup(bot: AutoShardedBot):
