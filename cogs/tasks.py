@@ -80,8 +80,8 @@ class PaginatorSource(menus.ListPageSource):
             titles.append(f"{NUMTOEMOTES[x + 1]} {'~~' if g.completed else ''}{g.name}{'~~' if g.completed else ''} - {format_dt(g.next_reset(),'R')}")
             values.append(f"Repeats every {g.interval}\n"
                           f"Completed: {checks[g.completed]}\n"
-                          f"Time of reminder: {g.time}\n")
-        # f"{'Goal: ' + str(g.goal) if g.goal else ''}"
+                          f"Time of reminder: {g.time}\n"
+                          f"{'Goal: ' + str(g.goal) if g.goal else ''}")
 
         return embed(
             title="Your tasks",
