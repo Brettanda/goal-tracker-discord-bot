@@ -178,14 +178,17 @@ class GoalTracker(commands.Cog):
         ctx: Context,
         expires: HumanTime = None,
         *,
-        goal: str
+        name: str
     ):
-        await ctx.send((expires and format_dt(expires.dt) or "Never") + f" {ctx._timezone_name}")
+        """Add a goal for your tasks"""
+        query = "INSERT INTO goalstracked (user_id, goal, expires) VALUES ($1, $2, $3) RETURNING *"
+        record = await ctx.db.fetchrow(query, ctx.author.id, name, expires)
+        goal = Goal(record=record)
+        await ctx.send(f"Added goal {goal.goal}")
 
     # @goals.command(name="delete",aliases=["remove"])
     # async
 
 
 async def setup(bot: AutoShardedBot):
-    ...
-    # await bot.add_cog(GoalTracker(bot))
+    await bot.add_cog(GoalTracker(bot))
