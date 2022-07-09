@@ -119,7 +119,7 @@ class Context(commands.Context):
 
     @property
     def lang(self):
-        return self.bot.language_files[self.lang_code]
+        return self.bot.language_files.get(self.lang_code, self.bot.language_files["en"])
 
     @property
     def session(self) -> ClientSession:
