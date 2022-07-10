@@ -7,11 +7,11 @@
     "cooldown": "Este comando está en enfriamiento, y estará disponible en `{}` o <t:{}:R>",
     "no_private_message": "Este comando no funciona en canales de texto que no sean servidores",
     "overflow": "Un número de argumentos es demasiado grande.",
-    "missing_functionality": "Sorry, this functionality is currently unavailable. Try again later?"
+    "missing_functionality": "Lo sentimos, esta funcionalidad no está disponible actualmente. ¿Intentar más tarde?"
   },
   "info": {
     "ping": "¡Ping!\n⏳ API es {}ms",
-    "languages": "{} has localization support for the following languages: \n```\n{}\n```If you don't see your native language in this list you can contribute on the Crowdin page.\nIf supported the language that I speak will match your Discord language settings."
+    "languages": "{} tiene soporte de localización para los siguientes idiomas: \n```\n{}\n```Si no ves tu idioma nativo en esta lista puedes contribuir en la página de Crowdin.\nSi se admite el idioma que hablo coincidirá con la configuración de idioma de Discord."
   },
   "reminder": {
     "set": "Recordatorio {}\n{}",
