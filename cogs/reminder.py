@@ -137,7 +137,7 @@ class ReminderConverter(commands.Converter, app_commands.Transformer):
     @classmethod
     async def transform(cls, interaction: discord.Interaction, value: str) -> Timer:
         ctx: Context = await Context.from_interaction(interaction)
-        cog: Reminder = ctx.cog  # type: ignore
+        cog: Reminder = interaction.client.get_cog("Reminder")  # type: ignore
         records: list[asyncpg.Record] = await cog.get_records(ctx.author.id, connection=ctx.db)
         timers = [Timer(record=record) for record in records]
 
