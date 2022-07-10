@@ -269,7 +269,7 @@ class TaskTracker(commands.Cog):
         tasks = await self.get_tasks(ctx.author.id)
 
         if len(tasks) == 0:
-            return await ctx.send("You don't have any tasks yet", ephemeral=True)
+            return await ctx.send("You don't have any tasks yet")
 
         source = PaginatorSource(entries=tasks)
         pages = paginator.RoboPages(source=source, ctx=ctx, compact=True)
@@ -304,14 +304,14 @@ class TaskTracker(commands.Cog):
         task = Task(record=record)
         await reminder.create_timer(task.next_reset(aware=True), "task_reset", ctx.author.id, task.id)
         self.get_tasks.invalidate(self, ctx.author.id)
-        await ctx.send(f"Added task `{task_name}`, this task will reset once per `{resets_every.interval}` at `{start_time.dt}`. The next reset is {format_dt(task.next_reset(), style='R')}", ephemeral=True)
+        await ctx.send(f"Added task `{task_name}`, this task will reset once per `{resets_every.interval}` at `{start_time.dt}`. The next reset is {format_dt(task.next_reset(), style='R')}")
 
     @tasks.command(name="check", aliases=["done", "complete", "finish"])
     async def tasks_check(self, ctx: Context, task: app_commands.Transform[Task, TaskConverter], check: Optional[bool] = True):
         """Check off a task for the set interval"""
         await ctx.db.execute("UPDATE taskstracked SET completed = $1 WHERE id = $2", check, task.id)
         self.get_tasks.invalidate(self, ctx.author.id)
-        await ctx.send(f"task `{task.name}` completed!", ephemeral=True)
+        await ctx.send(f"task `{task.name}` completed!")
 
     @tasks.command(name="change", aliases=["modify"])
     async def tasks_change(

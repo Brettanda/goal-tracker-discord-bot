@@ -84,7 +84,7 @@ class Info(commands.Cog):
         """Pong!"""
         shard = ctx.guild and self.bot.get_shard(ctx.guild.shard_id)
         latency = f"{shard.latency*1000:,.0f}" if shard is not None else f"{self.bot.latency*1000:,.0f}"
-        await ctx.send(ctx.lang["info"]["ping"].format(latency))
+        await ctx.send(ctx.lang["info"]["ping"].format(latency), ephemeral=True)
 
     @cached_property
     def link(self):
@@ -93,12 +93,12 @@ class Info(commands.Cog):
     @commands.hybrid_command("invite")
     async def invite(self, ctx: Context):
         """Get the invite link to add me to your server"""
-        await ctx.send(embed=embed(title="Invite me :)"), view=InviteButtons(self.link))
+        await ctx.send(embed=embed(title="Invite me :)"), view=InviteButtons(self.link), ephemeral=True)
 
     @commands.hybrid_command(name="support")
     async def support(self, ctx: Context):
         """Get an invite link to my support server"""
-        await ctx.send(SUPPORT_SERVER_INVITE)
+        await ctx.send(SUPPORT_SERVER_INVITE, ephemeral=True)
 
     @commands.hybrid_command(name="languages")
     async def languages(self, ctx: Context):
