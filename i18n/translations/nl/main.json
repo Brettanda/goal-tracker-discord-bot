@@ -1,0 +1,31 @@
+{
+  "_lang_name": "Nederlands",
+  "_lang_emoji": "🇺🇸",
+  "_translator": "Motostar#0001",
+  "errors": {
+    "invalid_user": "Ongeldige gebruiker. Gelieve een gebruiker te vermelden of een gebruikers-ID op te geven.",
+    "cooldown": "Dit commando is op een cooldown, en zal beschikbaar zijn in `{}` of <t:{}:R>",
+    "no_private_message": "Deze opdracht werkt niet in niet-server tekstkanalen",
+    "overflow": "Er is een te groot aantal argumenten.",
+    "missing_functionality": "Sorry, deze functie is momenteel niet beschikbaar. Probeer het later opnieuw?"
+  },
+  "info": {
+    "ping": "Ping!\n⏳ API is {}ms",
+    "languages": "{} heeft lokalisatieondersteuning voor de volgende talen: \n```\n{}\n```Als u uw moedertaal niet in deze lijst ziet, kunt u bijdragen op de Crowdin pagina.\nAls de taal die ik spreek wordt ondersteund overeen met je Discord taalinstellingen."
+  },
+  "reminder": {
+    "set": "Herinnering ingesteld op {}\n{}",
+    "empty": "Je hebt geen herinneringen.",
+    "not_found": "Geen herinnering gevonden",
+    "list_title": "Herinneringen",
+    "delete": {
+      "missing": "U hebt geen herinnering met dat ID.",
+      "deleted": "Herinnering verwijderd."
+    },
+    "clear": {
+      "prompt": "Weet u zeker dat u {} wilt verwijderen?",
+      "cancelled": "Geannuleerd.",
+      "success": "Succesvol {} verwijderd."
+    }
+  }
+}
