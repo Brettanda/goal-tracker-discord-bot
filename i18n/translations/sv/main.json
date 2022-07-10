@@ -1,0 +1,31 @@
+{
+  "_lang_name": "Engelska",
+  "_lang_emoji": "🇺🇸",
+  "_translator": "Motostar#0001",
+  "errors": {
+    "invalid_user": "Ogiltig användare. Ange en användare eller ange ett användar-ID.",
+    "cooldown": "Detta kommando är på en cooldown, och kommer att vara tillgängligt i `{}` eller <t:{}:R>",
+    "no_private_message": "Detta kommando fungerar inte i icke-serverns textkanaler",
+    "overflow": "Ett argumentnummer är för stort.",
+    "missing_functionality": "Tyvärr, denna funktionalitet är för närvarande inte tillgänglig. Försök igen senare?"
+  },
+  "info": {
+    "ping": "Ping!\n⏳ API är {}ms",
+    "languages": "{} har stöd för lokalisering för följande språk: \n```\n{}\n```Om du inte ser ditt modersmål i denna lista kan du bidra på Crowdin-sidan.\nOm det språk jag talar stöds matchar jag dina Discord-språkinställningar."
+  },
+  "reminder": {
+    "set": "Påminnelse set {}\n{}",
+    "empty": "Du har inga påminnelser.",
+    "not_found": "Ingen påminnelse hittades",
+    "list_title": "Påminnelser",
+    "delete": {
+      "missing": "Du har ingen påminnelse med detta ID.",
+      "deleted": "Påminnelse borttagen."
+    },
+    "clear": {
+      "prompt": "Är du säker på att du vill radera {}?",
+      "cancelled": "Avbruten.",
+      "success": "Borttagna {}."
+    }
+  }
+}
