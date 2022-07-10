@@ -5,7 +5,7 @@
 
 Supports Python 3.8 and up
 
-A template for discord.py v2.0 bots with cogs.
+I would prefer if you didn't run your own instance of this bot, and instead just inviting it. This repo is for educational purposes only.
 
 ## Running
 
