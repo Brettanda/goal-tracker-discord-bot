@@ -1,31 +1,31 @@
 {
-  "_lang_name": "日本語",
-  "_lang_emoji": "🇯🇵",
+  "_lang_name": "English",
+  "_lang_emoji": "🇺🇸",
   "_translator": "Motostar#0001",
   "errors": {
-    "invalid_user": "無効なユーザーです。ユーザーに言及するか、ユーザー ID を入力してください。",
-    "cooldown": "このコマンドはクールダウン中で、`{}`または <t:{}:R>で利用可能になります。",
-    "no_private_message": "このコマンドはサーバ以外のテキストチャンネルでは動作しません",
-    "overflow": "引数の数が大きすぎます。",
-    "missing_functionality": "申し訳ありませんが、この機能は現在利用できません。後でもう一度お試しください。"
+    "invalid_user": "Invalid user. Please mention a user or provide a user ID.",
+    "cooldown": "This command is on a cooldown, and will be available in `{}` or <t:{}:R>",
+    "no_private_message": "This command does not work in non-server text channels",
+    "overflow": "An arguments number is too large.",
+    "missing_functionality": "Sorry, this functionality is currently unavailable. Try again later?"
   },
   "info": {
-    "ping": "Ping!\n⏳ API は {}ms",
+    "ping": "Ping!\n⏳ API is {}ms",
     "languages": "{} has localization support for the following languages: \n```\n{}\n```If you don't see your native language in this list you can contribute on the Crowdin page.\nIf supported the language that I speak will match your Discord language settings."
   },
   "reminder": {
-    "set": "リマインダーが {}\n {} に設定されました",
-    "empty": "リマインダーがありません。",
-    "not_found": "リマインダーが見つかりません",
-    "list_title": "リマインダー",
+    "set": "Reminder set {}\n{}",
+    "empty": "You have no reminders.",
+    "not_found": "No reminder found",
+    "list_title": "Reminders",
     "delete": {
-      "missing": "そのIDのリマインダーはありません。",
-      "deleted": "リマインダーを削除しました。"
+      "missing": "You have no reminder with that ID.",
+      "deleted": "Reminder deleted."
     },
     "clear": {
-      "prompt": "{}を削除してもよろしいですか？",
-      "cancelled": "キャンセルされました",
-      "success": "{}の削除に成功しました。"
+      "prompt": "Are you sure you want to delete {}?",
+      "cancelled": "Cancelled.",
+      "success": "Successfully deleted {}."
     }
   }
 }

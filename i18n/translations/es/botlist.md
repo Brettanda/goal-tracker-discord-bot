@@ -1,15 +1,15 @@
-# Rastreador de objetivos
+# Goal Tracker
 
-Mantén un seguimiento de tus metas de vida, con listas de verificación y recordatorios diarios/semanales/mensuales/etc.
+Keep track of your life goals, with daily/weekly/monthly/etc. resetting checklists and reminders.
 
-## Recordatorios
+## Reminders
 
-Los recordatorios le permiten establecer un mensaje único para que le sea enviado después de un tiempo determinado.
+Reminders let you set one-time message to be sent back to you after a set time.
 
-## Tareas
+## Tasks
 
-Las tareas te permiten establecer recordatorios de repetición que restablecen su valor de terminación a incompleto después de un intervalo establecido y hora de inicio. Esto vamos a tener recordatorios diaria/mensuales/etc. para hacer las tareas que no quieres olvidar.
+Tasks let you set repeating reminders that reset its completion value back to un-completed after a set interval and start time. This let's you have daily/monthly/etc. reminders to do the tasks that you don't want to forget about.
 
-## Localización
+## Localization
 
-Este bot tiene localización de serie. Para ver si tu idioma está soportado, ejecuta el comando `/languages` , o consulta la página de [Crowdin](https://crwd.in/goal-tracker-discord-bot) , donde también puedes contribuir con traducciones en tu idioma nativo.
+This bot has localization out of the box. To see if your language is supported run the `/languages` command, or checkout the [Crowdin](https://crwd.in/goal-tracker-discord-bot) page, where you can also contribute translations in your native language.
