@@ -298,7 +298,7 @@ class TaskTracker(commands.Cog):
 
         reminder = self.bot.reminder
         if reminder is None:
-            return await ctx.send('Sorry, this functionality is currently unavailable. Try again later?', ephemeral=True)
+            return await ctx.send(ctx.lang["errors"]["missing_functionality"], ephemeral=True)
 
         record = await ctx.db.fetchrow("INSERT INTO taskstracked (user_id, name, interval, last_reset, time, remind_me) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", ctx.author.id, task_name, resets_every.interval, dt, dt.time(), remind_me)
         task = Task(record=record)
@@ -369,7 +369,7 @@ class TaskTracker(commands.Cog):
         """Delete a task"""
         reminder = self.bot.reminder
         if reminder is None:
-            return await ctx.send('Sorry, this functionality is currently unavailable. Try again later?', ephemeral=True)
+            return await ctx.send(ctx.lang["errors"]["missing_functionality"], ephemeral=True)
 
         query = """DELETE FROM taskstracked
                 WHERE id = $1 and user_id = $2;"""
