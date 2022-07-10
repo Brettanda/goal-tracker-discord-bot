@@ -8,3 +8,4 @@ All of the features that I would like to add to the bot
 - [ ] Task completion point system. Patron x2?
 - [ ] Task completion streaks?
 - [ ] Note taking
+- [ ] Make the context prompt edit the message instead of sending a new one

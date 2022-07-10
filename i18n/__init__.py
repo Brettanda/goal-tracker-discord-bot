@@ -9,6 +9,7 @@ if TYPE_CHECKING:
         cooldown: str
         no_private_message: str
         overflow: str
+        missing_functionality: str
 
     class Info(TypedDict):
         ping: str

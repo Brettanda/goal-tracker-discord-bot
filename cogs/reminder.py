@@ -172,7 +172,7 @@ class Reminder(commands.Cog):
 
     async def cog_command_error(self, ctx: Context, error: commands.CommandError):
         if isinstance(error, commands.TooManyArguments):
-            await ctx.send(f'You called the {ctx.command.name} command with too many arguments.')
+            await ctx.send(f'You called the {ctx.command.name} command with too many arguments.', ephemeral=True)
 
     @cache()
     async def get_records(self, user_id: int, *, connection: asyncpg.Connection = None) -> list[asyncpg.Record]:
@@ -280,7 +280,7 @@ class Reminder(commands.Cog):
             reminder or when.arg,
             connection=ctx.pool,
             created=ctx.message.created_at,
-            message_id=ctx.message.id
+            message_id=ctx.interaction is None and ctx.message.id
         )
         self.get_records.invalidate(self, ctx.author.id)
         await ctx.send(ctx.lang["reminder"]["set"].format(time.format_dt(when.dt, style='R'), reminder or when.arg))
@@ -291,7 +291,7 @@ class Reminder(commands.Cog):
         records = await self.get_records(ctx.author.id, connection=ctx.db)
 
         if len(records) == 0:
-            return await ctx.send(ctx.lang["reminder"]["empty"])
+            return await ctx.send(ctx.lang["reminder"]["empty"], ephemeral=True)
 
         source = PaginatorSource(entries=records, title=ctx.lang["reminder"]["list_title"])
         pages = paginator.RoboPages(source=source, ctx=ctx, compact=True)
@@ -308,7 +308,7 @@ class Reminder(commands.Cog):
 
         status = await ctx.db.execute(query, reminder.id, str(ctx.author.id))
         if status == "DELETE 0":
-            return await ctx.send(ctx.lang["reminder"]["delete"]["missing"])
+            return await ctx.send(ctx.lang["reminder"]["delete"]["missing"], ephemeral=True)
 
         if self._current_timer and self._current_timer.id == reminder.id:
             self._task.cancel()
@@ -329,11 +329,11 @@ class Reminder(commands.Cog):
         total = await ctx.db.fetchrow(query, author_id)
         total = total[0]
         if total == 0:
-            return await ctx.send(ctx.lang["reminder"]["empty"])
+            return await ctx.send(ctx.lang["reminder"]["empty"], ephemeral=True)
 
         confirm = await ctx.prompt(ctx.lang["reminder"]["clear"]["prompt"].format(f"{time.plural(total):reminder}"))
         if not confirm:
-            return await ctx.send(ctx.lang["reminder"]["clear"]["cancelled"])
+            return await ctx.send(ctx.lang["reminder"]["clear"]["cancelled"], ephemeral=True)
 
         query = """DELETE FROM reminders WHERE event = 'reminder' AND extra #>> '{args,0}' = $1;"""
         await ctx.db.execute(query, author_id)

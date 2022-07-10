@@ -63,10 +63,10 @@ class Config(commands.Cog, command_attrs=dict(extras={"permissions": ["manage_gu
         """Sets the timezone for a specific user."""
         if timezone is None:
             tz = self.bot.get_timezone(ctx.author.id, default=None)
-            return await ctx.send(f"Current timezone: `{tz}`", ephemeral=True)
+            return await ctx.send(f"Current timezone: `{tz}`")
         now = ctx.message.created_at.astimezone(timezone).strftime("%I:%M:%S %p")
         await self.bot.timezones.put(ctx.author.id, str(timezone))
-        await ctx.send(f"Setting timezone to `{timezone}` where it is currently `{now}`", ephemeral=True)
+        await ctx.send(f"Setting timezone to `{timezone}` where it is currently `{now}`")
 
     @commands.hybrid_command(name="servertimezone", aliases=["guildtimezone"])
     # @app_commands.default_permissions(manage_guild=True)
@@ -75,10 +75,10 @@ class Config(commands.Cog, command_attrs=dict(extras={"permissions": ["manage_gu
         """Sets the default timezone for the server"""
         if timezone is None:
             tz = self.bot.get_timezone(ctx.guild and ctx.guild.id, default=None)
-            return await ctx.send(f"Current timezone: `{tz}`", ephemeral=True)
+            return await ctx.send(f"Current timezone: `{tz}`")
         now = ctx.message.created_at.astimezone(timezone).strftime("%I:%M:%S %p")
         await self.bot.timezones.put(ctx.guild.id, str(timezone))
-        await ctx.send(f"Setting timezone to `{timezone}` where it is currently `{now}`", ephemeral=True)
+        await ctx.send(f"Setting timezone to `{timezone}` where it is currently `{now}`")
 
     # @commands.hybrid_command("updates")
     # @commands.has_permissions(manage_webhooks=True)

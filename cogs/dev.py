@@ -291,7 +291,7 @@ class Dev(commands.Cog, command_attrs=dict(hidden=True)):
 
         confirm = await ctx.prompt("Would you like to run pip install upgrade?")
         if confirm:
-            pstdout, pstderr = await self.run_process("python -m pip install --upgrade pip && python -m pip install -r requirements.txt --upgrade --no-cache-dir")
+            pstdout, pstderr = await self.run_process("venv/bin/python3.8 -m pip install --upgrade pip && venv/bin/python3.8 -m pip install -r requirements.txt --upgrade --no-cache-dir")
             if pstderr:
                 log.error(pstderr)
             await ctx.safe_send(pstdout)

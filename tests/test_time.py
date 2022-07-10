@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import datetime
+
 import pytest
+import pytz
 from utils.time import (HumanTime, Interval, TimeOfDay, expected_intervals,
-                        expected_times_of_day)
+                        expected_times_of_day, ADT)
 
 pytestmark = pytest.mark.asyncio
 
@@ -14,27 +17,42 @@ async def test_interval():
 
 
 async def test_time_of_day():
+    now: ADT = datetime.datetime.now(tz=datetime.timezone.utc)  # type: ignore
     for e in expected_times_of_day:
-        time = TimeOfDay(e).time
-        if ":" in e:
-            split = e.split(":")
-            split = [split[0], *split[1].split(" ")]
-        else:
-            split = e.split(" ")
+        tod = TimeOfDay(str(e), now=now)
 
-        hour = split[0]
-        if split[-1].lower() == "pm":
-            hour = str(int(hour) + 12)
-        if int(hour) == 12 or int(hour) == 24:
-            hour = str(int(hour) - 12)
-        assert time.hour == int(hour)
+        assert tod.time.hour == int(e.hour)
+        assert tod.time.minute == int(e.minute)
+        assert tod.dt > now
 
-        if len(split) > 2:
-            minute = split[1]
-            assert time.minute == int(minute)
+
+async def test_time_of_day_berlin():
+    tz = pytz.timezone("Europe/Berlin")
+    now: ADT = datetime.datetime.now(tz=tz)  # type: ignore
+    for e in expected_times_of_day:
+        tod = TimeOfDay(str(e), now=now, timezone=tz)
+
+        assert tod.time.hour == int(e.hour)
+        assert tod.time.minute == int(e.minute)
+        assert tod.dt > now
 
 
 async def test_human_time():
     for e in expected_times_of_day:
-        assert HumanTime(e).dt
-        assert HumanTime(e).dt_local
+        dt = HumanTime(str(e)).dt
+        dt_local = HumanTime(str(e)).dt_local
+        assert dt.hour == e.hour
+        assert dt.minute == e.minute
+        assert dt_local.hour == e.hour
+        assert dt_local.minute == e.minute
+
+
+async def test_human_time_berlin():
+    tz = pytz.timezone("Europe/Berlin")
+    for e in expected_times_of_day:
+        dt = HumanTime(str(e), timezone=tz).dt
+        dt_local = HumanTime(str(e)).dt_local
+        assert dt.hour != e.hour
+        assert dt.minute == e.minute
+        assert dt_local.hour == e.hour
+        assert dt_local.minute == e.minute
