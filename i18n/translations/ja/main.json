@@ -7,7 +7,7 @@
     "cooldown": "このコマンドはクールダウン中で、`{}`または <t:{}:R>で利用可能になります。",
     "no_private_message": "このコマンドはサーバ以外のテキストチャンネルでは動作しません",
     "overflow": "引数の数が大きすぎます。",
-    "missing_functionality": "Sorry, this functionality is currently unavailable. Try again later?"
+    "missing_functionality": "申し訳ありませんが、この機能は現在利用できません。後でもう一度お試しください。"
   },
   "info": {
     "ping": "Ping!\n⏳ API は {}ms",

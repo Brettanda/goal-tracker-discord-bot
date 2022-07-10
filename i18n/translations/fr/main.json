@@ -7,11 +7,11 @@
     "cooldown": "Cette commande est en rechargement, et sera disponible dans `{}` ou <t:{}:R>",
     "no_private_message": "Cette commande ne fonctionne pas dans les salons texte non-serveur",
     "overflow": "Un nombre d'arguments est trop grand.",
-    "missing_functionality": "Sorry, this functionality is currently unavailable. Try again later?"
+    "missing_functionality": "Désolé, cette fonctionnalité est actuellement indisponible. Réessayez plus tard?"
   },
   "info": {
     "ping": "Ping !\n⏳ L'API est {}ms",
-    "languages": "{} has localization support for the following languages: \n```\n{}\n```If you don't see your native language in this list you can contribute on the Crowdin page.\nIf supported the language that I speak will match your Discord language settings."
+    "languages": "{} a le support de la localisation pour les langues suivantes : \n```\n{}\n```Si vous ne voyez pas votre langue native dans cette liste, vous pouvez contribuer sur la page Crowdin.\nSi la langue que je parle est prise en charge, elle correspondra à vos paramètres de langue Discord."
   },
   "reminder": {
     "set": "Rappel défini {}\n{}",
