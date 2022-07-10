@@ -16,7 +16,7 @@ from utils.colours import MessageColors
 from utils.db import Column, Table
 from utils.embed import embed
 from utils.fuzzy import autocomplete
-from utils.time import ADT, NDT, NT, Interval, TimeOfDay, format_dt
+from utils.time import ADT, NDT, NT, Interval, TimeOfDay, format_dt, human_timedelta
 
 if TYPE_CHECKING:
     from index import AutoShardedBot
@@ -73,9 +73,10 @@ class PaginatorSource(menus.ListPageSource):
             False: "\N{CROSS MARK}"
         }
         titles, values = [], []
+        now = discord.utils.utcnow()
         for x, g in enumerate(page):
             titles.append(f"{NUMTOEMOTES[x + 1]} {'~~' if g.completed else ''}{g.name}{'~~' if g.completed else ''} - {format_dt(g.next_reset(),'R')}")
-            values.append(f"Repeats every {g.interval}\n"
+            values.append(f"Repeats every {human_timedelta(now + g.interval, source=now)}\n"
                           f"Completed: {checks[g.completed]}\n"
                           f"Time of reminder: {g.time}\n")
 
@@ -307,7 +308,7 @@ class TaskTracker(commands.Cog):
         task = Task(record=record)
         await reminder.create_timer(task.next_reset(aware=True), "task_reset", ctx.author.id, task.id)
         self.get_tasks.invalidate(self, ctx.author.id)
-        await ctx.send(f"Added task `{task_name}`, this task will reset once per `{resets_every.interval}` at `{start_time.dt}`. The next reset is {format_dt(task.next_reset(), style='R')}")
+        await ctx.send(f"Added task `{task_name}`, this task will reset once per `{human_timedelta(ctx.message.created_at + resets_every.interval, source=ctx.message.created_at)}` at `{start_time.dt}`. The next reset is {format_dt(task.next_reset(), style='R')}")
 
     @tasks.command(name="check", aliases=["done", "complete", "finish"])
     async def tasks_check(self, ctx: Context, task: app_commands.Transform[Task, TaskConverter], check: Optional[bool] = True):
