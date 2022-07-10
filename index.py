@@ -281,6 +281,7 @@ class AutoShardedBot(commands.AutoShardedBot):
             await ctx.release()
 
     async def close(self) -> None:
+        log.info("Closing...")
         await super().close()
         await self.session.close()
 
