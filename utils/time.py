@@ -193,9 +193,9 @@ class TOD:
     """Time of Day"""
 
     def __init__(self, twenty_four_hour: bool = False, *, hour: int, minute: int = 0):
-        if hour > 23:
+        if hour > 24 or hour < 1:
             raise ValueError('hour must be between 0 and 23')
-        if minute > 59:
+        if minute > 59 or minute < 0:
             raise ValueError('minute must be between 0 and 59')
         self.twenty_four_hour = twenty_four_hour
         self.hour = hour
@@ -208,15 +208,17 @@ class TOD:
     def __str__(self) -> str:
         if self.twenty_four_hour:
             return f"{self.hour:02d}:{self.minute:02d}"
+        hour = self.hour % 12
+        hour = hour if hour != 0 else 12
         if self.minute == 0:
-            return f"{self.hour%12}{' ' + self.am_or_pm if self.am_or_pm is not None else ''}"
-        return f"{self.hour%12}:{self.minute:02d}{' ' + self.am_or_pm if self.am_or_pm is not None else ''}"
+            return f"{hour} {self.am_or_pm}"
+        return f"{hour}:{self.minute:02d} {self.am_or_pm}"
 
 
 expected_times_of_day = [
     TOD(hour=hour, minute=minute)
     for minute in range(0, 60)
-    for hour in range(0, 24)
+    for hour in range(1, 24)
 ]
 
 

@@ -143,6 +143,9 @@ class Task:
         else:
             time = self.reset_datetime + self.interval
 
+        while time < now:
+            time += self.interval
+
         if aware:
             return time.replace(tzinfo=datetime.timezone.utc)
         return time
