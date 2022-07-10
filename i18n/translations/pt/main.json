@@ -6,11 +6,12 @@
     "invalid_user": "Usuário inválido. Por favor, mencione um usuário ou forneça um ID de usuário.",
     "cooldown": "Este comando está em um tempo de espera, e estará disponível em '{}' ou <t:{}:R>",
     "no_private_message": "Este comando não funciona em canais de texto que não são do servidor",
-    "overflow": "Um número de argumentos é muito grande."
+    "overflow": "Um número de argumentos é muito grande.",
+    "missing_functionality": "Sorry, this functionality is currently unavailable. Try again later?"
   },
   "info": {
     "ping": "Ping!\n⏳ API é {}ms",
-    "languages": "{} tem suporte de localização para os seguintes idiomas: \n```\n{}\n```Se você não vê sua língua nativa nesta lista, você pode contribuir na página Crowdin"
+    "languages": "{} has localization support for the following languages: \n```\n{}\n```If you don't see your native language in this list you can contribute on the Crowdin page.\nIf supported the language that I speak will match your Discord language settings."
   },
   "reminder": {
     "set": "Lembrete definido {}\n{}",
