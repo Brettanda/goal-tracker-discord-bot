@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import datetime
 import re
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Literal, Optional, Union
 
 import parsedatetime as pdt
 import discord
@@ -52,7 +52,7 @@ class Naive:
 class ADT(datetime.datetime, Aware):
     """timezone aware datetime"""
     @classmethod
-    def combine(cls, date: Self, time: AT, tzinfo: datetime.timezone | None = ...) -> Self:
+    def combine(cls, date: datetime.date, time: AT, tzinfo: datetime.tzinfo = None) -> Self:
         return super().combine(date, time, tzinfo)  # type: ignore
 
 
@@ -64,7 +64,7 @@ class AT(datetime.time, Aware):
 class NDT(datetime.datetime, Naive):
     """non-aware datetime"""
     @classmethod
-    def combine(cls, date: Self, time: NT) -> Self:
+    def combine(cls, date: datetime.date, time: NT) -> Self:
         return super().combine(date, time)  # type: ignore
 
 
@@ -168,6 +168,9 @@ class Interval(commands.Converter, app_commands.Transformer):
             raise commands.BadArgument(f'value provided is too small. Min is {_min} seconds.')
         self.interval = interval
 
+    def __repr__(self) -> str:
+        return f'<{self.__class__.__name__} {self.interval}>'
+
     @classmethod
     async def convert(cls, ctx: Context, argument: str) -> Self:
         return cls(argument, _min=15 * 60)
@@ -186,37 +189,72 @@ class Interval(commands.Converter, app_commands.Transformer):
         return autocomplete(choices, str(value))
 
 
+class TOD:
+    """Time of Day"""
+
+    def __init__(self, twenty_four_hour: bool = False, *, hour: int, minute: int = 0):
+        if hour > 23:
+            raise ValueError('hour must be between 0 and 23')
+        if minute > 59:
+            raise ValueError('minute must be between 0 and 59')
+        self.twenty_four_hour = twenty_four_hour
+        self.hour = hour
+        self.minute = minute
+
+    @property
+    def am_or_pm(self) -> Literal["AM", "PM"]:
+        return "PM" if self.hour >= 12 else "AM"
+
+    def __str__(self) -> str:
+        if self.twenty_four_hour:
+            return f"{self.hour:02d}:{self.minute:02d}"
+        if self.minute == 0:
+            return f"{self.hour%12}{' ' + self.am_or_pm if self.am_or_pm is not None else ''}"
+        return f"{self.hour%12}:{self.minute:02d}{' ' + self.am_or_pm if self.am_or_pm is not None else ''}"
+
+
 expected_times_of_day = [
-    minute != 0 and f"{hour}:{minute:02d} {quarter}" or f"{hour} {quarter}"
+    TOD(hour=hour, minute=minute)
     for minute in range(0, 60)
-    for hour in range(1, 13)
-    for quarter in ["AM", "PM"]
+    for hour in range(0, 24)
 ]
 
 
 class TimeOfDay(commands.Converter, app_commands.Transformer):
     calendar = pdt.Calendar(version=pdt.VERSION_CONTEXT_STYLE)
 
-    def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None, timezone: datetime.tzinfo = datetime.timezone.utc):
-        dt, status = self.calendar.parseDT(argument, sourceTime=now, tzinfo=timezone)
+    def __init__(self, argument: str, *, now: ADT = None, timezone: datetime.tzinfo = datetime.timezone.utc):
+        more_now: ADT = now or discord.utils.utcnow().astimezone(timezone)  # type: ignore
+        dt, status = self.calendar.parseDT(argument, sourceTime=more_now, tzinfo=timezone)
         if not status.hasTime:
             raise commands.BadArgument('invalid time provided, try e.g. "2pm" or "1 hour from now"')
 
-        self.time: datetime.time = dt.time()
-        self.dt: datetime.datetime = dt
+        self.time: AT = dt.time().replace(tzinfo=timezone)
+        if dt <= more_now:
+            dt = dt + datetime.timedelta(days=1)
+        self.dt: ADT = dt
+
+    def __repr__(self) -> str:
+        return f'<{self.__class__.__name__} time={self.time}>'
+
+    @classmethod
+    def now(cls, *, now: ADT = None, timezone: datetime.tzinfo = datetime.timezone.utc):
+        return cls(argument='now', now=now, timezone=timezone)
 
     @classmethod
     async def convert(cls, ctx: Context, argument: str) -> Self:
-        return cls(argument, now=ctx.message.created_at, timezone=ctx.timezone)
+        now: ADT = ctx.message.created_at.astimezone(ctx.timezone)  # type: ignore
+        return cls(argument, now=now, timezone=ctx.timezone)
 
     @classmethod
     async def transform(cls, interaction: discord.Interaction, argument: str) -> Self:
         timezone = interaction.client.get_timezone(interaction.user.id, interaction.guild_id)  # type: ignore
-        return cls(argument, now=interaction.created_at, timezone=timezone)
+        now: ADT = interaction.created_at.astimezone(timezone)  # type: ignore
+        return cls(argument, now=now, timezone=timezone)
 
     @classmethod
     async def autocomplete(cls, interaction: discord.Interaction, value: int | float | str) -> list[app_commands.Choice[int | float | str]]:
-        choices = [app_commands.Choice(name=i, value=i) for i in expected_times_of_day]
+        choices = [app_commands.Choice(name=str(i), value=str(i)) for i in expected_times_of_day]
         return autocomplete(choices, str(value))
 
 
@@ -273,14 +311,14 @@ class HumanTime(commands.Converter, app_commands.Transformer):
 
     @classmethod
     async def autocomplete(cls, interaction: discord.Interaction, value: int | float | str) -> list[app_commands.Choice[int | float | str]]:
-        choices = [app_commands.Choice(name=i, value=i) for i in expected_times_of_day]
+        choices = [app_commands.Choice(name=str(i), value=str(i)) for i in expected_times_of_day]
         return autocomplete(choices, str(value))
 
 
 class Time(HumanTime):
     def __init__(self, argument: str, *, now: Optional[datetime.datetime] = None, timezone: datetime.tzinfo = datetime.timezone.utc):
         try:
-            o = ShortTime(argument, now=now)
+            o = ShortTime(argument, now=now, timezone=timezone)
         except Exception:
             super().__init__(argument)
         else:
@@ -316,7 +354,7 @@ class FriendlyTimeResult:
         self.dt = dt
         self.arg = ""
 
-    async def ensure_constraints(self, ctx: Context, uft: UserFriendlyTime, now: datetime.datetime, remaining: str) -> None:
+    async def ensure_constraints(self, ctx: Context, uft: UserFriendlyTime, now: ADT, remaining: str) -> None:
         if self.dt < now:
             raise commands.BadArgument('This time is in the past.')
 
@@ -329,6 +367,9 @@ class FriendlyTimeResult:
             self.arg = await uft.converter.convert(ctx, remaining)
         else:
             self.arg = remaining
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} dt={self.dt} arg={self.arg}>"
 
 
 class UserFriendlyTime(commands.Converter):

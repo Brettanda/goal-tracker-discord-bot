@@ -293,8 +293,8 @@ class TaskTracker(commands.Cog):
             task_name: str
     ):
         """Adds a new task."""
-        dt_local = start_time and start_time.dt or ctx.message.created_at.astimezone(ctx.timezone)
-        dt = dt_local.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+        start_time = start_time or TimeOfDay.now(timezone=ctx.timezone)
+        dt: NDT = start_time.dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)  # type: ignore
 
         reminder = self.bot.reminder
         if reminder is None:
@@ -304,7 +304,7 @@ class TaskTracker(commands.Cog):
         task = Task(record=record)
         await reminder.create_timer(task.next_reset(aware=True), "task_reset", ctx.author.id, task.id)
         self.get_tasks.invalidate(self, ctx.author.id)
-        await ctx.send(f"Added task `{task_name}`, this task will reset once per `{resets_every.interval}` at `{dt_local}`. The next reset is {format_dt(task.next_reset(), style='R')}", ephemeral=True)
+        await ctx.send(f"Added task `{task_name}`, this task will reset once per `{resets_every.interval}` at `{start_time.dt}`. The next reset is {format_dt(task.next_reset(), style='R')}", ephemeral=True)
 
     @tasks.command(name="check", aliases=["done", "complete", "finish"])
     async def tasks_check(self, ctx: Context, task: app_commands.Transform[Task, TaskConverter], check: Optional[bool] = True):
