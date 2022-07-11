@@ -1,4 +1,4 @@
-# Discord.py bot template
+# Goal Tracker
 
 [![Will it lint?](https://github.com/Brettanda/goal-tracker-discord-bot/actions/workflows/push.yml/badge.svg?branch=main)](https://github.com/Brettanda/goal-tracker-discord-bot/actions/workflows/push.yml)
 [![Crowdin](https://badges.crowdin.net/goal-tracker-discord-bot/localized.svg)](https://crowdin.com/project/goal-tracker-discord-bot)
