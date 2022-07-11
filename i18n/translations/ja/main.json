@@ -11,7 +11,23 @@
   },
   "info": {
     "ping": "Ping!\n⏳ API は {}ms",
-    "languages": "{} has localization support for the following languages: \n```\n{}\n```If you don't see your native language in this list you can contribute on the Crowdin page.\nIf supported the language that I speak will match your Discord language settings."
+    "languages": {
+      "page": "Crowdin ページ",
+      "list": "{} has localization support for the following languages: \n```\n{}\n```If you don't see your native language in this list you can contribute on the Crowdin page.\nIf supported the language that I speak will match your Discord language settings."
+    },
+    "info": {
+      "title": "{} - About",
+      "footer": "❤️ と discord.py!",
+      "titles": [
+        "サーバーが参加しました",
+        "レイテンシー",
+        "シャード",
+        "稼働時間",
+        "CPU/RAM",
+        "次の日付から存在します"
+      ]
+    },
+    "invite": "招待してください :)"
   },
   "reminder": {
     "set": "リマインダーが {}\n {} に設定されました",

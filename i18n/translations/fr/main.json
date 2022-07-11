@@ -11,7 +11,23 @@
   },
   "info": {
     "ping": "Ping !\n⏳ L'API est {}ms",
-    "languages": "{} a le support de la localisation pour les langues suivantes : \n```\n{}\n```Si vous ne voyez pas votre langue native dans cette liste, vous pouvez contribuer sur la page Crowdin.\nSi la langue que je parle est prise en charge, elle correspondra à vos paramètres de langue Discord."
+    "languages": {
+      "page": "Page Crowdin",
+      "list": "{} a le support de la localisation pour les langues suivantes : \n```\n{}\n```Si vous ne voyez pas votre langue native dans cette liste, vous pouvez contribuer sur la page Crowdin.\nSi la langue que je parle est prise en charge, elle correspondra à vos paramètres de langue Discord."
+    },
+    "info": {
+      "title": "{} - À propos",
+      "footer": "Fait avec ❤️ et discord.py!",
+      "titles": [
+        "Serveurs connectés",
+        "Latence",
+        "Éclats",
+        "Délai de disponibilité",
+        "CPU/RAM",
+        "Existe-t-il depuis"
+      ]
+    },
+    "invite": "Invitez-moi :)"
   },
   "reminder": {
     "set": "Rappel défini {}\n{}",
