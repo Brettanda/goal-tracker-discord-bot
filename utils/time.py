@@ -237,7 +237,7 @@ class ShortTime:
 
         data = {k: int(v) for k, v in match.groupdict(default=0).items()}
         now = now or datetime.datetime.now(timezone)
-        self.dt = (now + relativedelta(**data)).astimezone(datetime.timezone.utc)
+        self.dt: ADT = (now + relativedelta(**data)).astimezone(datetime.timezone.utc)  # type: ignore
 
     @classmethod
     async def convert(cls, ctx: Context, argument: str) -> Self:
@@ -258,8 +258,8 @@ class HumanTime(commands.Converter, app_commands.Transformer):
             # replace it with the current time
             dt = dt.replace(hour=now.hour, minute=now.minute, second=now.second, microsecond=now.microsecond)
 
-        self.dt_local = dt.replace(tzinfo=timezone)
-        self.dt = dt = dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+        self.dt_local: ADT = dt.replace(tzinfo=timezone)
+        self.dt: NDT = dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)
         self._past = self.dt_local < now
 
     @classmethod
@@ -284,7 +284,7 @@ class Time(HumanTime):
         except Exception:
             super().__init__(argument)
         else:
-            self.dt = o.dt
+            self.dt = o.dt  # type: ignore
             self._past = False
 
 
