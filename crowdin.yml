@@ -1,7 +1,6 @@
 project_id: "525782"
 api_token_env: CROWDIN_PERSONAL_TOKEN
-base_path: "/i18n"
 
 files:
-  - source: '/source/*[.json,.md]'
-    translation: /translations/%two_letters_code%/%original_file_name%
+  - source: '/i18n/source/*[.json,.md]'
+    translation: /i18n/translations/%two_letters_code%/%original_file_name%
