@@ -11,7 +11,23 @@
   },
   "info": {
     "ping": "Ping!\n⏳ API är {}ms",
-    "languages": "{} har stöd för lokalisering för följande språk: \n```\n{}\n```Om du inte ser ditt modersmål i denna lista kan du bidra på Crowdin-sidan.\nOm det språk jag talar stöds matchar jag dina Discord-språkinställningar."
+    "languages": {
+      "page": "Crowdin sida",
+      "list": "{} har stöd för lokalisering för följande språk: \n```\n{}\n```Om du inte ser ditt modersmål i denna lista kan du bidra på Crowdin-sidan.\nOm det språk jag talar stöds matchar jag dina Discord-språkinställningar."
+    },
+    "info": {
+      "title": "{} - Om",
+      "footer": "Gjort med ❤️ och discord.py!",
+      "titles": [
+        "Servrar anslöt",
+        "Latens",
+        "Skärvor",
+        "Drifttid",
+        "CPU/RAM",
+        "Befintligt sedan"
+      ]
+    },
+    "invite": "Bjud in mig :)"
   },
   "reminder": {
     "set": "Påminnelse set {}\n{}",
