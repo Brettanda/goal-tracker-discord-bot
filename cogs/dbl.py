@@ -72,7 +72,7 @@ class TopGG(commands.Cog):
         if self._current_len_guilds != len(self.bot.guilds):
             await self.update_stats()
 
-    @commands.command(case_insensitive=True)
+    @commands.hybrid_command()
     async def vote(self, ctx: Context):
         """Get the link to vote for me on Top.gg"""
         query = """SELECT id,expires
@@ -109,7 +109,7 @@ class TopGG(commands.Cog):
         try:
             tasks = [self.bot.session.post(
                 f"https://top.gg/api/bots/{self.bot.user.id}/stats",
-                headers={"Authorization": os.environ["TOKENTOP"]},
+                headers={"Authorization": self.bot.config.tokentop},
                 json={
                     "server_count": len(self.bot.guilds),
                     "shard_count": self.bot.shard_count,
@@ -117,7 +117,7 @@ class TopGG(commands.Cog):
             ),
                 self.bot.session.post(
                 f"https://discord.bots.gg/api/v1/bots/{self.bot.user.id}/stats",
-                headers={"Authorization": os.environ["TOKENDBOTSGG"]},
+                headers={"Authorization": self.bot.config.tokendbotsgg},
                 json={
                     "guildCount": len(self.bot.guilds),
                     "shardCount": self.bot.shard_count,
@@ -125,7 +125,7 @@ class TopGG(commands.Cog):
             ),
                 self.bot.session.post(
                 f"https://discordbotlist.com/api/v1/bots/{self.bot.user.id}/stats",
-                headers={"Authorization": f'Bot {os.environ["TOKENDBL"]}'},
+                headers={"Authorization": f'Bot {self.bot.config.tokendbl}'},
                 json={
                     "guilds": len(self.bot.guilds),
                     "users": len(self.bot.users),
