@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import io
 import os
 from typing import TYPE_CHECKING, Optional, Union
 
@@ -24,36 +23,6 @@ SUPPORT_SERVER_ID = 991443052625412116
 VOTE_URL = "https://top.gg/bot/990139482273628251/vote"
 
 
-class CustomWebhook(discord.Webhook):
-    async def safe_send(self, content: str, *, escape_mentions=True, **kwargs) -> Optional[discord.WebhookMessage]:
-        """something"""
-
-        if escape_mentions:
-            content = discord.utils.escape_mentions(content)
-
-        if len(content) > 2000:
-            fp = io.BytesIO(content.encode())
-            kwargs.pop("file", None)
-            return await self.send(file=discord.File(fp, filename="message_too_long.txt"), **kwargs)
-        else:
-            return await self.send(content, **kwargs)
-
-
-class VoteView(discord.ui.View):
-    """A view that shows the user how to vote for the bot."""
-
-    def __init__(self, parent: TopGG, *, timeout=None):
-        self.parent: TopGG = parent
-        self.bot: AutoShardedBot = self.parent.bot
-        super().__init__(timeout=timeout)
-        self.add_item(discord.ui.Button(label="Vote link", url=VOTE_URL, style=discord.ButtonStyle.url))
-
-
-class Refresh(discord.ui.View):
-    def __init__(self):
-        super().__init__()
-        self.add_item(discord.ui.Button(label="Vote", style=discord.ButtonStyle.url, url=VOTE_URL))
-
 # TODO: Add support for voting on discords.com and discordbotlist.com https://cdn.discordapp.com/attachments/892840236781015120/947203621358010428/unknown.png
 
 
@@ -74,12 +43,6 @@ class TopGG(commands.Cog):
 
     def __repr__(self) -> str:
         return f"<cogs.{self.__cog_name__}>"
-
-    @discord.utils.cached_property
-    def log_bumps(self) -> CustomWebhook:
-        id = int(os.environ["WEBHOOKBUMPSID"], base=10)
-        token = os.environ["WEBHOOKBUMPSTOKEN"]
-        return CustomWebhook.partial(id, token, session=self.bot.session)
 
     async def cog_load(self):
         if "dev" in self.bot.user.display_name.lower():
@@ -104,11 +67,6 @@ class TopGG(commands.Cog):
         record = await conn.fetchrow(query, str(user_id))
         return True if record else False
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        if not self.bot.views_loaded:
-            self.bot.add_view(VoteView(self))
-
     @tasks.loop(minutes=10.0)
     async def _update_stats_loop(self):
         if self._current_len_guilds != len(self.bot.guilds):
@@ -126,7 +84,9 @@ class TopGG(commands.Cog):
         record = await ctx.db.fetchrow(query, str(ctx.author.id))
         expires = record["expires"] if record else None
         vote_message = f"Your next vote time is: {time.format_dt(expires, style='R')}" if expires is not None else "You can vote now"
-        await ctx.reply(embed=embed(title="Voting", description=f"{vote_message}\n\nWhen you vote you get:", fieldstitle=["Better rate limiting"], fieldsval=["60 messages/12 hours instead of 30 messages/12 hours."]), view=VoteView(self))
+        view = discord.ui.View()
+        view.add_item(discord.ui.Button(label="Vote link", url=VOTE_URL, style=discord.ButtonStyle.url))
+        await ctx.reply(embed=embed(title="Voting", description=f"{vote_message}\n\nWhen you vote you get:", fieldstitle=["Better rate limiting"], fieldsval=["60 messages/12 hours instead of 30 messages/12 hours."]), view=view)
 
     @commands.command(extras={"examples": ["test", "upvote"]}, hidden=True)
     @commands.is_owner()
@@ -198,7 +158,9 @@ class TopGG(commands.Cog):
         reminder_sent = False
         try:
             private = await self.bot.fetch_user(user_id)
-            await private.send(embed=embed(title="Your vote time has refreshed.", description="You can now vote again!"), view=Refresh())
+            view = discord.ui.View()
+            view.add_item(discord.ui.Button(label="Vote link", url=VOTE_URL, style=discord.ButtonStyle.url))
+            await private.send(embed=embed(title="Your vote time has refreshed.", description="You can now vote again!"), view=view)
         except discord.HTTPException:
             pass
         else:
@@ -239,17 +201,7 @@ class TopGG(commands.Cog):
                     pass
                 else:
                     log.info(f"Added vote role to {member.id}")
-            await self.log_bumps.send(
-                username=self.bot.user.display_name,
-                avatar_url=self.bot.user.display_avatar.url,
-                embed=embed(
-                    title=f"Somebody Voted - {_type}",
-                    fieldstitle=["Member"],
-                    fieldsval=[
-                        f'{member and member.mention} (ID: {user})'],
-                    fieldsin=[False, False]
-                )
-            )
+            log.info(f"Somebody Voted - {_type} (ID: {user})")
 
 
 async def setup(bot: AutoShardedBot):
