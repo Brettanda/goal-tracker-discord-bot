@@ -90,6 +90,7 @@ class Context(commands.Context):
         super().__init__(**kwargs)
         self.pool: Pool = self.bot.pool
         self._db: Optional[Union[Pool, Connection]] = None
+        self.command_message: Optional[discord.Message] = None
 
     def __repr__(self) -> str:
         return "<Context>"
@@ -202,8 +203,19 @@ class Context(commands.Context):
         )
         # kwargs["embed"] = kwargs.pop("embed", embed(title=message))
         view.message = await self.send(message, view=view)
+        if not delete_after:
+            self.command_message = view.message
         await view.wait()
         return view.value
+
+    async def send(self, *args, **kwargs):
+        if self.command_message:
+            content = kwargs.pop("content", args[0] if len(args) else None)
+            embeds = kwargs.pop("embeds", [])
+            attachments = kwargs.pop("attachments", [])
+            view = kwargs.pop("view", None)
+            return await self.command_message.edit(content=content, embeds=embeds, attachments=attachments, view=view, **kwargs)
+        return await super().send(*args, **kwargs)
 
     async def safe_send(self, content: str, *, escape_mentions=True, **kwargs: Any) -> discord.Message:
         if escape_mentions:
