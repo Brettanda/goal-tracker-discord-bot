@@ -7,7 +7,7 @@ import psutil
 from discord.ext import commands
 from discord.utils import cached_property, oauth_url
 from utils.embed import embed
-from utils.time import human_timedelta
+from utils.time import human_timedelta, format_dt
 
 if TYPE_CHECKING:
     from index import AutoShardedBot
@@ -47,7 +47,7 @@ class Info(commands.Cog):
         memory_usage = self.process.memory_full_info().uss / 1024**2
         cpu_usage = self.process.cpu_percent() / psutil.cpu_count()
 
-        shard: discord.ShardInfo = self.bot.get_shard(ctx.guild.shard_id)  # type: ignore  # will never be None
+        shard: discord.ShardInfo = ctx.guild and self.bot.get_shard(ctx.guild.shard_id)  # type: ignore  # will never be None
 
         return await ctx.send(
             embed=embed(
@@ -63,7 +63,7 @@ class Info(commands.Cog):
                     self.bot.shard_count,
                     uptime,
                     f'{memory_usage:.2f} MiB\n{cpu_usage:.2f}% CPU',
-                    f"<t:{int(self.bot.user.created_at.timestamp())}:D>"],
+                    f"{format_dt(self.bot.user.created_at, style='D')}"],
             )
         )
 
