@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-import enum
 import logging
 from typing import TYPE_CHECKING, Literal, Optional, overload
 
@@ -103,14 +102,6 @@ class TaskReminders(discord.ui.View):
             await pool.execute("UPDATE taskstracked SET completed = true WHERE id = $1", int(task_id))
             log.info(f"Task {task_id} marked as completed")
         await interaction.response.send_message("Task marked as completed")
-
-
-class TaskDisplayIntervals(enum.Enum):
-    all = "all"
-    hourly = "hour"
-    daily = "day"
-    weekly = "week"
-    monthly = "month"
 
 
 class Task:
