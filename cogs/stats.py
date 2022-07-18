@@ -29,11 +29,11 @@ from discord.ext import commands, tasks
 from typing_extensions import Annotated
 from utils import time
 from utils.db import Column, Table
+from utils.context import Context
 
 if TYPE_CHECKING:
 
     from index import AutoShardedBot
-    from utils.context import Context
 
     class DataCommandsBatchEntry(TypedDict):
         guild: Optional[int]
@@ -275,7 +275,14 @@ class Stats(commands.Cog, command_attrs=dict(hidden=True)):
             })
 
     @commands.Cog.listener()
-    async def on_command_completion(self, ctx):
+    async def on_command_completion(self, ctx: Context):
+        if ctx.interaction:
+            return
+        await self.register_command(ctx)
+
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: discord.Interaction):
+        ctx = await Context.from_interaction(interaction)
         await self.register_command(ctx)
 
     @commands.Cog.listener()
