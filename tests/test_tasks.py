@@ -14,7 +14,6 @@ def boundedIncrement(num: int, _max: int):
     if num > _max:
         return 0, True
     return num, False
-    # return ((num + 1) + (_max + 1)) % (_max + 1)
 
 
 def boundedDecrement(num: int, _min: int = 0, wrap_to: int = 10):
@@ -22,7 +21,6 @@ def boundedDecrement(num: int, _min: int = 0, wrap_to: int = 10):
     if num < _min:
         return wrap_to, True
     return num, False
-    # return ((num - 1) - (_min - 1)) % (_min - 1)
 
 
 async def test_task_from_past():
