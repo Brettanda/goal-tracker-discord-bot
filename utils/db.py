@@ -68,6 +68,12 @@ class Table(metaclass=TableMeta):  # type: ignore
 
         old_init = kwargs.pop('init', None)
 
+        kwargs.update({
+            'command_timeout': 60,
+            'max_size': 15,
+            'min_size': 15,
+        })
+
         async def init(con):
             await con.set_type_codec(
                 "jsonb", schema="pg_catalog", encoder=_encode_jsonb, decoder=_decord_jsonb, format="text"
