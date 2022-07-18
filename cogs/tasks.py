@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-import enum
 import logging
 from typing import TYPE_CHECKING, Literal, Optional, overload
 
@@ -16,7 +15,7 @@ from utils.colours import MessageColors
 from utils.db import Column, Table
 from utils.embed import embed
 from utils.fuzzy import autocomplete
-from utils.time import ADT, NDT, NT, Interval, TimeOfDay, format_dt
+from utils.time import ADT, NDT, NT, Interval, TimeOfDay, format_dt, human_timedelta
 
 if TYPE_CHECKING:
     from index import AutoShardedBot
@@ -73,9 +72,10 @@ class PaginatorSource(menus.ListPageSource):
             False: "\N{CROSS MARK}"
         }
         titles, values = [], []
+        now = discord.utils.utcnow()
         for x, g in enumerate(page):
             titles.append(f"{NUMTOEMOTES[x + 1]} {'~~' if g.completed else ''}{g.name}{'~~' if g.completed else ''} - {format_dt(g.next_reset(),'R')}")
-            values.append(f"Repeats every {g.interval}\n"
+            values.append(f"Repeats every {human_timedelta(now + g.interval, source=now)}\n"
                           f"Completed: {checks[g.completed]}\n"
                           f"Time of reminder: {g.time}\n")
 
@@ -102,14 +102,6 @@ class TaskReminders(discord.ui.View):
             await pool.execute("UPDATE taskstracked SET completed = true WHERE id = $1", int(task_id))
             log.info(f"Task {task_id} marked as completed")
         await interaction.response.send_message("Task marked as completed")
-
-
-class TaskDisplayIntervals(enum.Enum):
-    all = "all"
-    hourly = "hour"
-    daily = "day"
-    weekly = "week"
-    monthly = "month"
 
 
 class Task:
@@ -142,6 +134,9 @@ class Task:
             time = self.reset_datetime
         else:
             time = self.reset_datetime + self.interval
+
+        while time < now:
+            time += self.interval
 
         if aware:
             return time.replace(tzinfo=datetime.timezone.utc)
@@ -266,7 +261,7 @@ class TaskTracker(commands.Cog):
         tasks = await self.get_tasks(ctx.author.id)
 
         if len(tasks) == 0:
-            return await ctx.send("You don't have any tasks yet", ephemeral=True)
+            return await ctx.send("You don't have any tasks yet")
 
         source = PaginatorSource(entries=tasks)
         pages = paginator.RoboPages(source=source, ctx=ctx, compact=True)
@@ -290,25 +285,25 @@ class TaskTracker(commands.Cog):
             task_name: str
     ):
         """Adds a new task."""
-        dt_local = start_time and start_time.dt or ctx.message.created_at.astimezone(ctx.timezone)
-        dt = dt_local.astimezone(datetime.timezone.utc).replace(tzinfo=None)
+        start_time = start_time or TimeOfDay.now(timezone=ctx.timezone)
+        dt: NDT = start_time.dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)  # type: ignore
 
         reminder = self.bot.reminder
         if reminder is None:
-            return await ctx.send('Sorry, this functionality is currently unavailable. Try again later?', ephemeral=True)
+            return await ctx.send(ctx.lang["errors"]["missing_functionality"], ephemeral=True)
 
         record = await ctx.db.fetchrow("INSERT INTO taskstracked (user_id, name, interval, last_reset, time, remind_me) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", ctx.author.id, task_name, resets_every.interval, dt, dt.time(), remind_me)
         task = Task(record=record)
         await reminder.create_timer(task.next_reset(aware=True), "task_reset", ctx.author.id, task.id)
         self.get_tasks.invalidate(self, ctx.author.id)
-        await ctx.send(f"Added task `{task_name}`, this task will reset once per `{resets_every.interval}` at `{dt_local}`. The next reset is {format_dt(task.next_reset(), style='R')}", ephemeral=True)
+        await ctx.send(f"Added task `{task_name}`, this task will reset once per `{human_timedelta(ctx.message.created_at + resets_every.interval, source=ctx.message.created_at)}` at `{start_time.dt}`. The next reset is {format_dt(task.next_reset(), style='R')}")
 
     @tasks.command(name="check", aliases=["done", "complete", "finish"])
     async def tasks_check(self, ctx: Context, task: app_commands.Transform[Task, TaskConverter], check: Optional[bool] = True):
         """Check off a task for the set interval"""
         await ctx.db.execute("UPDATE taskstracked SET completed = $1 WHERE id = $2", check, task.id)
         self.get_tasks.invalidate(self, ctx.author.id)
-        await ctx.send(f"task `{task.name}` completed!", ephemeral=True)
+        await ctx.send(f"task `{task.name}` completed!")
 
     @tasks.command(name="change", aliases=["modify"])
     async def tasks_change(
@@ -366,7 +361,7 @@ class TaskTracker(commands.Cog):
         """Delete a task"""
         reminder = self.bot.reminder
         if reminder is None:
-            return await ctx.send('Sorry, this functionality is currently unavailable. Try again later?', ephemeral=True)
+            return await ctx.send(ctx.lang["errors"]["missing_functionality"], ephemeral=True)
 
         query = """DELETE FROM taskstracked
                 WHERE id = $1 and user_id = $2;"""

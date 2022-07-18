@@ -1,0 +1,47 @@
+{
+  "_lang_name": "Português",
+  "_lang_emoji": "🇵🇹",
+  "_translator": "Motostar#0001",
+  "errors": {
+    "invalid_user": "Usuário inválido. Por favor, mencione um usuário ou forneça um ID de usuário.",
+    "cooldown": "Este comando está em um tempo de espera, e estará disponível em '{}' ou <t:{}:R>",
+    "no_private_message": "Este comando não funciona em canais de texto que não são do servidor",
+    "overflow": "Um número de argumentos é muito grande.",
+    "missing_functionality": "Desculpe, esta funcionalidade não está disponível no momento. Tentar novamente mais tarde?"
+  },
+  "info": {
+    "ping": "Ping!\n⏳ API é {}ms",
+    "languages": {
+      "page": "Página Crowdin",
+      "list": "{} tem suporte de localização para os seguintes idiomas: \n```\n{}\n```Se você não vê sua língua nativa nesta lista você pode contribuir na página Crowdin.\nSe suportado o idioma que eu falo, corresponderá às suas configurações de idioma do Discord."
+    },
+    "info": {
+      "title": "{} - Sobre",
+      "footer": "Feito com ❤️ e discord.py!",
+      "titles": [
+        "Servidores unidos",
+        "Latência",
+        "Fragmentos",
+        "Tempo em atividade",
+        "CPU/RAM",
+        "existido desde"
+      ]
+    },
+    "invite": "Me convide :)"
+  },
+  "reminder": {
+    "set": "Lembrete definido {}\n{}",
+    "empty": "Você não tem lembretes.",
+    "not_found": "Nenhum lembrete encontrado",
+    "list_title": "Lembrete",
+    "delete": {
+      "missing": "Você não tem nenhum lembrete com esse ID.",
+      "deleted": "Lembrete excluído."
+    },
+    "clear": {
+      "prompt": "Tem certeza que deseja excluir {}?",
+      "cancelled": "Cancelado",
+      "success": "Excluído com sucesso {}."
+    }
+  }
+}

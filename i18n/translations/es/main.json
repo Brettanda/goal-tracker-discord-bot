@@ -6,11 +6,28 @@
     "invalid_user": "Usuario no válido. Por favor, mencione un usuario o proporcione un ID de usuario.",
     "cooldown": "Este comando está en enfriamiento, y estará disponible en `{}` o <t:{}:R>",
     "no_private_message": "Este comando no funciona en canales de texto que no sean servidores",
-    "overflow": "Un número de argumentos es demasiado grande."
+    "overflow": "Un número de argumentos es demasiado grande.",
+    "missing_functionality": "Lo sentimos, esta funcionalidad no está disponible actualmente. ¿Intentar más tarde?"
   },
   "info": {
     "ping": "¡Ping!\n⏳ API es {}ms",
-    "languages": "{} tiene soporte de localización para los siguientes idiomas: \n```\n{}\n```Si no ves tu idioma nativo en esta lista puedes contribuir en la página de Crowdin"
+    "languages": {
+      "page": "Página de Crowdin",
+      "list": "{} tiene soporte de localización para los siguientes idiomas: \n```\n{}\n```Si no ves tu idioma nativo en esta lista puedes contribuir en la página de Crowdin.\nSi se admite el idioma que hablo coincidirá con la configuración de idioma de Discord."
+    },
+    "info": {
+      "title": "{} - Sobre",
+      "footer": "Hecho con ❤️ y discord.py!",
+      "titles": [
+        "Servidores unidos",
+        "Latencia",
+        "Fragmentos",
+        "Actualización",
+        "CPU/RAM",
+        "Existente desde"
+      ]
+    },
+    "invite": "Invitarme :)"
   },
   "reminder": {
     "set": "Recordatorio {}\n{}",

@@ -9,4 +9,4 @@ lru_dict
 pytimeparse
 topggpy==1.4.0
 discord-ext-menus @ git+https://github.com/Rapptz/discord-ext-menus@8686b5d1bbc1d3c862292eb436ab630d6e9c9b53
-discord.py @ git+https://github.com/Rapptz/discord.py@903e2e64e9182b8d3330ef565af7bb46ff9f04da
+discord.py @ git+https://github.com/Rapptz/discord.py@a8a6bf4f6c9d6cb71a23bf2079c410aeb1407a8b

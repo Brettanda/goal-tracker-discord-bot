@@ -6,11 +6,28 @@
     "invalid_user": "Utilisateur non valide. Veuillez mentionner un utilisateur ou fournir un ID d'utilisateur.",
     "cooldown": "Cette commande est en rechargement, et sera disponible dans `{}` ou <t:{}:R>",
     "no_private_message": "Cette commande ne fonctionne pas dans les salons texte non-serveur",
-    "overflow": "Un nombre d'arguments est trop grand."
+    "overflow": "Un nombre d'arguments est trop grand.",
+    "missing_functionality": "Désolé, cette fonctionnalité est actuellement indisponible. Réessayez plus tard?"
   },
   "info": {
     "ping": "Ping !\n⏳ L'API est {}ms",
-    "languages": "{} a le support de la localisation pour les langues suivantes : \n```\n{}\n```Si vous ne voyez pas votre langue native dans cette liste, vous pouvez contribuer sur la page Crowdin"
+    "languages": {
+      "page": "Page Crowdin",
+      "list": "{} a le support de la localisation pour les langues suivantes : \n```\n{}\n```Si vous ne voyez pas votre langue native dans cette liste, vous pouvez contribuer sur la page Crowdin.\nSi la langue que je parle est prise en charge, elle correspondra à vos paramètres de langue Discord."
+    },
+    "info": {
+      "title": "{} - À propos",
+      "footer": "Fait avec ❤️ et discord.py!",
+      "titles": [
+        "Serveurs connectés",
+        "Latence",
+        "Éclats",
+        "Délai de disponibilité",
+        "CPU/RAM",
+        "Existe-t-il depuis"
+      ]
+    },
+    "invite": "Invitez-moi :)"
   },
   "reminder": {
     "set": "Rappel défini {}\n{}",

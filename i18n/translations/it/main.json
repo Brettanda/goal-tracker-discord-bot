@@ -1,0 +1,47 @@
+{
+  "_lang_name": "Italiano",
+  "_lang_emoji": "🇮🇹",
+  "_translator": "Motostar#0001",
+  "errors": {
+    "invalid_user": "Utente non valido. Si prega di menzionare un utente o fornire un ID utente.",
+    "cooldown": "Questo comando è in fase di ricarica, e sarà disponibile in `{}` o <t:{}:R>",
+    "no_private_message": "Questo comando non funziona in canali di testo non server",
+    "overflow": "Un numero di argomenti è troppo grande.",
+    "missing_functionality": "Siamo spiacenti, questa funzionalità non è attualmente disponibile. Riprova più tardi?"
+  },
+  "info": {
+    "ping": "Ping!\n⏳ l'API è {}ms",
+    "languages": {
+      "page": "Pagina Crowdin",
+      "list": "{} ha il supporto di localizzazione per le seguenti lingue: \n```\n{}\n````Se non vedi la tua lingua madre in questa lista, puoi contribuire sulla pagina Crowdin.\nSe supportata, la lingua che parlo corrisponderà alle impostazioni della lingua Discord."
+    },
+    "info": {
+      "title": "{} - Informazioni",
+      "footer": "Realizzato con ❤️ e discord.py!",
+      "titles": [
+        "Server entrati",
+        "Latenza",
+        "Frammenti",
+        "Uptime",
+        "CPU/RAM",
+        "Esistente dal"
+      ]
+    },
+    "invite": "Invita me :)"
+  },
+  "reminder": {
+    "set": "Promemoria impostato {}\n{}",
+    "empty": "Non hai alcun promemoria.",
+    "not_found": "Nessun promemoria trovato",
+    "list_title": "Promemoria",
+    "delete": {
+      "missing": "Non hai alcun promemoria con quell'ID.",
+      "deleted": "Promemoria eliminato."
+    },
+    "clear": {
+      "prompt": "Sei sicuro di voler eliminare {}?",
+      "cancelled": "Annullato.",
+      "success": "Eliminato con successo {}."
+    }
+  }
+}

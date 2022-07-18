@@ -18,15 +18,8 @@ SUPPORT_SERVER_INVITE = "https://discord.gg/PSgfZ5MzTg"
 
 INVITE_PERMISSIONS = discord.Permissions(
     send_messages=True,
-    send_messages_in_threads=True,
     embed_links=True,
 )
-
-
-class InviteButtons(discord.ui.View):
-    def __init__(self, link: str):
-        super().__init__(timeout=None)
-        self.add_item(discord.ui.Button(emoji="\N{HEAVY PLUS SIGN}", label="Invite me!", style=discord.ButtonStyle.link, url=link, row=1))
 
 
 class Info(commands.Cog):
@@ -34,15 +27,17 @@ class Info(commands.Cog):
         self.bot: AutoShardedBot = bot
         self.process = psutil.Process()
 
-        bot.add_check(
-            commands.bot_has_permissions(
-                send_messages=True,
-                send_messages_in_threads=True,
-                embed_links=True,
-            ).predicate)
-
     def __repr__(self) -> str:
         return f"<cogs.{self.__cog_name__}>"
+
+    async def bot_check(self, ctx: Context) -> bool:
+        if ctx.guild is None:
+            return True
+
+        return await commands.bot_has_permissions(
+                send_messages=True,
+                embed_links=True,
+        ).predicate(ctx)
 
     @commands.hybrid_command(name="about", aliases=["info"])
     async def info(self, ctx: Context):
@@ -56,18 +51,12 @@ class Info(commands.Cog):
 
         return await ctx.send(
             embed=embed(
-                title=f"{self.bot.user.name} - About",
+                title=ctx.lang["info"]["info"]["title"].format(self.bot.user.name),
                 thumbnail=self.bot.user.display_avatar.url,
                 author_icon=self.bot.owner.display_avatar.url,
                 author_name=str(self.bot.owner),
-                footer="Made with ❤️ and discord.py!",
-                fieldstitle=[
-                    "Servers joined",
-                    "Latency",
-                    "Shards",
-                    "Uptime",
-                    "CPU/RAM",
-                    "Existed since"],
+                footer=ctx.lang["info"]["info"]["footer"],
+                fieldstitle=ctx.lang["info"]["info"]["titles"],
                 fieldsval=[
                     len(self.bot.guilds),
                     f"{(shard.latency if ctx.guild else self.bot.latency)*1000:,.0f} ms",
@@ -83,7 +72,7 @@ class Info(commands.Cog):
         """Pong!"""
         shard = ctx.guild and self.bot.get_shard(ctx.guild.shard_id)
         latency = f"{shard.latency*1000:,.0f}" if shard is not None else f"{self.bot.latency*1000:,.0f}"
-        await ctx.send(ctx.lang["info"]["ping"].format(latency))
+        await ctx.send(ctx.lang["info"]["ping"].format(latency), ephemeral=True)
 
     @cached_property
     def link(self):
@@ -92,19 +81,21 @@ class Info(commands.Cog):
     @commands.hybrid_command("invite")
     async def invite(self, ctx: Context):
         """Get the invite link to add me to your server"""
-        await ctx.send(embed=embed(title="Invite me :)"), view=InviteButtons(self.link))
+        view = discord.ui.View()
+        view.add_item(discord.ui.Button(emoji="\N{HEAVY PLUS SIGN}", label=ctx.lang["info"]["invite"], style=discord.ButtonStyle.link, url=self.link))
+        await ctx.send(embed=embed(title=ctx.lang["info"]["invite"]), view=view, ephemeral=True)
 
     @commands.hybrid_command(name="support")
     async def support(self, ctx: Context):
         """Get an invite link to my support server"""
-        await ctx.send(SUPPORT_SERVER_INVITE)
+        await ctx.send(SUPPORT_SERVER_INVITE, ephemeral=True)
 
     @commands.hybrid_command(name="languages")
     async def languages(self, ctx: Context):
         """Get a list of languages I support"""
         crowdin = discord.ui.View()
-        crowdin.add_item(discord.ui.Button(label="Crowdin Page", url="https://crwd.in/goal-tracker-discord-bot"))
-        await ctx.send(ctx.lang["info"]["languages"].format(self.bot.user.display_name, '\n'.join([n['_lang_name'] for n in self.bot.language_files.values()])), view=crowdin)
+        crowdin.add_item(discord.ui.Button(label=ctx.lang["info"]["languages"]["page"], url="https://crwd.in/goal-tracker-discord-bot"))
+        await ctx.send(ctx.lang["info"]["languages"]["list"].format(self.bot.user.display_name, '\n'.join([n['_lang_name'] for n in self.bot.language_files.values()])), view=crowdin)
 
 
 async def setup(bot: AutoShardedBot):

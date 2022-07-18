@@ -6,7 +6,7 @@ from discord.app_commands import Choice
 
 
 def autocomplete(arr: list[Choice], value: str | float | int) -> list[Choice]:
-    """Return a list of choices that are at least 70% similar to current."""
+    """Return a list of choices that are at least 90% similar to current."""
     if str(value) == "":
         return arr[:25]
     choices = []
@@ -14,9 +14,9 @@ def autocomplete(arr: list[Choice], value: str | float | int) -> list[Choice]:
         c.name = textwrap.shorten(c.name, width=100)
         if c.value.lower() == str(value).lower() or str(value).lower().startswith(c.value.lower()) or str(value).lower().endswith(c.value.lower()):
             choices.append((0, c))
-        if str(value).lower() in c.value.lower():
+        elif str(value).lower() in c.value.lower():
             choices.append((1, c))
-        if levenshtein_ratio_and_distance(str(value), str(arr[x].value)) >= 0.8 and (0, c) not in choices:
+        elif levenshtein_ratio_and_distance(str(value), str(arr[x].value)) >= 0.9 and (0, c) not in choices:
             choices.append((levenshtein_ratio_and_distance(str(value), str(arr[x].value)), c))
 
     return [

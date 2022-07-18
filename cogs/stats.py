@@ -13,7 +13,6 @@ import asyncio
 import datetime
 import gc
 import io
-import json
 import logging
 import os
 import re
@@ -21,33 +20,32 @@ import sys
 import textwrap
 import traceback
 from collections import Counter
-from typing import TYPE_CHECKING, Optional, Any, TypedDict
-from typing_extensions import Annotated
+from typing import TYPE_CHECKING, Any, Optional, TypedDict
 
 import asyncpg
 import discord
 import psutil
 from discord.ext import commands, tasks
-
+from typing_extensions import Annotated
 from utils import time
-from utils.db import Table, Column
+from utils.db import Column, Table
 
 if TYPE_CHECKING:
 
-    from utils.context import Context
     from index import AutoShardedBot
+    from utils.context import Context
 
     class DataCommandsBatchEntry(TypedDict):
-        guild: Optional[str]
-        channel: str
-        author: str
+        guild: Optional[int]
+        channel: int
+        author: int
         used: str
         prefix: str
         command: str
         failed: bool
 
     class DataJoinsBatchEntry(TypedDict):
-        guild: str
+        guild: int
         time: str
         joined: Optional[bool]
         current_count: int
@@ -71,18 +69,18 @@ class GatewayHandler(logging.Handler):
 
 
 class Commands(Table):
-    id = Column("id bigserial PRIMARY KEY NOT NULL")
-    guild_id = Column("guild_id bigint NOT NULL")
+    id = Column("id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY")
+    guild_id = Column("guild_id bigint")
     channel_id = Column("channel_id bigint NOT NULL")
     author_id = Column("author_id bigint NOT NULL")
-    used = Column("used TIMESTAMP WITH TIME ZONE")
+    used = Column("used TIMESTAMP")
     prefix = Column("prefix text")
     command = Column("command text")
     failed = Column("failed boolean")
 
 
 class Joined(Table):
-    time = Column("time TIMESTAMP WITH TIME ZONE")
+    time = Column("time TIMESTAMP")
     guild_id = Column("guild_id bigint NOT NULL")
     joined = Column("joined boolean DEFAULT NULL")
     current_count = Column("current_count bigint DEFAULT NULL")
@@ -167,13 +165,10 @@ class Stats(commands.Cog, command_attrs=dict(hidden=True)):
         self._data_commands_batch: list[DataCommandsBatchEntry] = []
         self._data_joins_batch: list[DataJoinsBatchEntry] = []
         self.bulk_insert_commands_loop.add_exception_type(asyncpg.PostgresConnectionError)
-        self.bulk_insert_commands_loop.start()
 
         self.bulk_insert_joins_loop.add_exception_type(asyncpg.PostgresConnectionError)
-        self.bulk_insert_joins_loop.start()
 
         self._gateway_queue = asyncio.Queue()
-        self.gateway_worker.start()
 
     def __repr__(self) -> str:
         return f"<cogs.{self.__cog_name__}>"
@@ -182,7 +177,7 @@ class Stats(commands.Cog, command_attrs=dict(hidden=True)):
         is_owner = await self.bot.is_owner(ctx.author)
         if not is_owner:
             raise commands.NotOwner()
-        if ctx.guild and not ctx.channel.permissions_for(ctx.guild.me).attach_files:
+        if ctx.guild and not ctx.bot_permissions.attach_files:
             raise commands.BotMissingPermissions(["attach_files"])
         return True
 
@@ -190,10 +185,10 @@ class Stats(commands.Cog, command_attrs=dict(hidden=True)):
         query = """INSERT INTO commands (guild_id, channel_id, author_id, used, prefix, command, failed)
                SELECT x.guild, x.channel, x.author, x.used, x.prefix, x.command, x.failed
                FROM jsonb_to_recordset($1::jsonb) AS
-               x(guild TEXT, channel TEXT, author TEXT, used TIMESTAMP, prefix TEXT, command TEXT, failed BOOLEAN)"""
+               x(guild BIGINT, channel BIGINT, author BIGINT, used TIMESTAMP, prefix TEXT, command TEXT, failed BOOLEAN)"""
 
         if self._data_commands_batch:
-            await self.bot.pool.execute(query, json.dumps(self._data_commands_batch))
+            await self.bot.pool.execute(query, self._data_commands_batch)
             total = len(self._data_commands_batch)
             if total > 1:
                 log.info(f"Inserted {total} commands into the database")
@@ -203,16 +198,21 @@ class Stats(commands.Cog, command_attrs=dict(hidden=True)):
         query = """INSERT INTO joined (guild_id, joined, current_count, time)
                SELECT x.guild, x.joined, x.current_count, x.time
                FROM jsonb_to_recordset($1::jsonb) AS
-               x(guild TEXT, joined BOOLEAN, current_count BIGINT, time TIMESTAMP)"""
+               x(guild BIGINT, joined BOOLEAN, current_count BIGINT, time TIMESTAMP)"""
 
         if self._data_joins_batch:
-            await self.bot.pool.execute(query, json.dumps(self._data_joins_batch))
+            await self.bot.pool.execute(query, self._data_joins_batch)
             total = len(self._data_joins_batch)
             if total > 1:
                 log.info(f"Inserted {total} guild counts into the database")
             self._data_joins_batch.clear()
 
-    def cog_unload(self):
+    async def cog_load(self):
+        self.bulk_insert_commands_loop.start()
+        self.bulk_insert_joins_loop.start()
+        self.gateway_worker.start()
+
+    async def cog_unload(self):
         self.bulk_insert_commands_loop.stop()
         self.bulk_insert_joins_loop.stop()
         self.gateway_worker.cancel()
@@ -253,12 +253,12 @@ class Stats(commands.Cog, command_attrs=dict(hidden=True)):
             guild_id = ctx.guild.id
 
         command_with_args = message.content or f"{ctx.clean_prefix}{command} {' '.join([a for a in ctx.args[2:] if a])}{' ' and ' '.join([str(k) for k in ctx.kwargs.values()])}"
-        log.info(f'{message.author} in {destination}: {command_with_args}')
+        log.info(f'{message.author} in {destination} [{ctx.lang_code}]: {command_with_args}')
         async with self._batch_commands_lock:
             self._data_commands_batch.append({
-                'guild': str(guild_id),
-                'channel': str(ctx.channel.id),
-                'author': str(ctx.author.id),
+                'guild': guild_id,
+                'channel': ctx.channel.id,
+                'author': ctx.author.id,
                 'used': message.created_at.isoformat(),
                 'prefix': ctx.prefix,
                 'command': command,
@@ -268,7 +268,7 @@ class Stats(commands.Cog, command_attrs=dict(hidden=True)):
     async def register_joins(self, guild: discord.Guild, joined: Optional[bool] = None):
         async with self._batch_joins_lock:
             self._data_joins_batch.append({
-                'guild': str(guild.id),
+                'guild': guild.id,
                 'time': discord.utils.utcnow().isoformat(),
                 'joined': joined,
                 'current_count': len(self.bot.guilds),

@@ -6,11 +6,28 @@
     "invalid_user": "無効なユーザーです。ユーザーに言及するか、ユーザー ID を入力してください。",
     "cooldown": "このコマンドはクールダウン中で、`{}`または <t:{}:R>で利用可能になります。",
     "no_private_message": "このコマンドはサーバ以外のテキストチャンネルでは動作しません",
-    "overflow": "引数の数が大きすぎます。"
+    "overflow": "引数の数が大きすぎます。",
+    "missing_functionality": "申し訳ありませんが、この機能は現在利用できません。後でもう一度お試しください。"
   },
   "info": {
     "ping": "Ping!\n⏳ API は {}ms",
-    "languages": "{} には次の言語のローカリゼーションサポートがあります: \n```\n{}\n```このリストにあなたの母国語が表示されない場合は、Crowdin のページに貢献することができます"
+    "languages": {
+      "page": "Crowdin ページ",
+      "list": "{} has localization support for the following languages: \n```\n{}\n```If you don't see your native language in this list you can contribute on the Crowdin page.\nIf supported the language that I speak will match your Discord language settings."
+    },
+    "info": {
+      "title": "{} - About",
+      "footer": "❤️ と discord.py!",
+      "titles": [
+        "サーバーが参加しました",
+        "レイテンシー",
+        "シャード",
+        "稼働時間",
+        "CPU/RAM",
+        "次の日付から存在します"
+      ]
+    },
+    "invite": "招待してください :)"
   },
   "reminder": {
     "set": "リマインダーが {}\n {} に設定されました",

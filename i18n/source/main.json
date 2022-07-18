@@ -6,11 +6,28 @@
     "invalid_user": "Invalid user. Please mention a user or provide a user ID.",
     "cooldown": "This command is on a cooldown, and will be available in `{}` or <t:{}:R>",
     "no_private_message": "This command does not work in non-server text channels",
-    "overflow": "An arguments number is too large."
+    "overflow": "An arguments number is too large.",
+    "missing_functionality": "Sorry, this functionality is currently unavailable. Try again later?"
   },
   "info": {
     "ping": "Ping!\n⏳ API is {}ms",
-    "languages": "{} has localization support for the following languages: \n```\n{}\n```If you don't see your native language in this list you can contribute on the Crowdin page"
+    "languages": {
+      "page": "Crowdin Page",
+      "list": "{} has localization support for the following languages: \n```\n{}\n```If you don't see your native language in this list you can contribute on the Crowdin page.\nIf supported the language that I speak will match your Discord language settings."
+    },
+    "info": {
+      "title": "{} - About",
+      "footer": "Made with ❤️ and discord.py!",
+      "titles": [
+        "Servers joined",
+        "Latency",
+        "Shards",
+        "Uptime",
+        "CPU/RAM",
+        "Existed since"
+      ]
+    },
+    "invite":"Invite me :)"
   },
   "reminder": {
     "set": "Reminder set {}\n{}",

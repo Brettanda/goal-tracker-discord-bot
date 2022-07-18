@@ -1,0 +1,47 @@
+{
+  "_lang_name": "Deutsch",
+  "_lang_emoji": "🇩🇪",
+  "_translator": "Motostar#0001",
+  "errors": {
+    "invalid_user": "Ungültiger Benutzer. Bitte geben Sie einen Benutzer an oder geben Sie eine Benutzer-ID an.",
+    "cooldown": "Dieser Befehl ist auf Abklingzeit und wird in `{}` oder <t:{}:R> verfügbar sein",
+    "no_private_message": "Dieser Befehl funktioniert nicht in nicht-Server-Textkanälen",
+    "overflow": "Eine Argumentnummer ist zu groß.",
+    "missing_functionality": "Entschuldigung, diese Funktion ist derzeit nicht verfügbar. Später erneut versuchen?"
+  },
+  "info": {
+    "ping": "Ping!\n⏳ API ist {}ms",
+    "languages": {
+      "page": "Crowdin-Seite",
+      "list": "{} hat Lokalisierungsunterstützung für folgende Sprachen: \n```\n{}\n```Wenn Sie Ihre Muttersprache in dieser Liste nicht sehen, können Sie auf der Crowdin-Seite beitragen.\nWenn die Sprache, die ich spreche, unterstützt wird deine Discord Spracheinstellungen."
+    },
+    "info": {
+      "title": "{} - Über",
+      "footer": "Hergestellt mit ❤️ und discord.py!",
+      "titles": [
+        "Server beigetreten",
+        "Latenz",
+        "Scherben",
+        "Laufzeit",
+        "CPU/RAM",
+        "Bestehend seit"
+      ]
+    },
+    "invite": "Lade mich ein :)"
+  },
+  "reminder": {
+    "set": "Erinnerung gesetzt {}\n{}",
+    "empty": "Sie haben keine Erinnerungen.",
+    "not_found": "Keine Erinnerung gefunden",
+    "list_title": "Erinnerungen",
+    "delete": {
+      "missing": "Sie haben keine Erinnerung mit dieser ID.",
+      "deleted": "Erinnerung gelöscht."
+    },
+    "clear": {
+      "prompt": "Bist du sicher, dass du {} löschen möchtest?",
+      "cancelled": "Abgebrochen.",
+      "success": "{} erfolgreich gelöscht."
+    }
+  }
+}

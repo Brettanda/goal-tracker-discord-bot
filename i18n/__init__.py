@@ -9,10 +9,22 @@ if TYPE_CHECKING:
         cooldown: str
         no_private_message: str
         overflow: str
+        missing_functionality: str
+
+    class InfoInfo(TypedDict):
+        title: str
+        footer: str
+        titles: list[str]
+
+    class InfoLanguages(TypedDict):
+        page: str
+        list: str
 
     class Info(TypedDict):
         ping: str
-        languages: str
+        languages: InfoLanguages
+        info: InfoInfo
+        invite: str
 
     class ReminderDelete(TypedDict):
         missing: str
