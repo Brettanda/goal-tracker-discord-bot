@@ -36,7 +36,7 @@ log = logging.getLogger(__name__)
 
 
 class Reminders(db.Table):
-    id = db.Column("id bigserial PRIMARY KEY NOT NULL")
+    id = db.Column("id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY")
     expires = db.Column("expires timestamp NOT NULL")
     created = db.Column("created timestamp NOT NULL DEFAULT (now() at time zone 'utc')")
     event = db.Column("event text")

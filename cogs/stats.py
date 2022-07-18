@@ -69,7 +69,7 @@ class GatewayHandler(logging.Handler):
 
 
 class Commands(Table):
-    id = Column("id bigserial PRIMARY KEY NOT NULL")
+    id = Column("id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY")
     guild_id = Column("guild_id bigint")
     channel_id = Column("channel_id bigint NOT NULL")
     author_id = Column("author_id bigint NOT NULL")
