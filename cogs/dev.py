@@ -22,15 +22,16 @@ import sys
 import textwrap
 import time as _time
 import traceback
+from contextlib import redirect_stdout
 from typing import TYPE_CHECKING, Any, List, Optional, Sequence, Union
 
 import discord
 from discord.ext import commands
 from typing_extensions import Annotated
+from utils import time
 from utils.colours import MessageColors
 from utils.context import Context
 from utils.embed import embed
-from utils import time
 
 if TYPE_CHECKING:
     from index import AutoShardedBot
@@ -448,8 +449,8 @@ class Dev(commands.Cog, command_attrs=dict(hidden=True)):
 
         func = env['func']
         try:
-            # with redirect_stdout(stdout):
-            ret = await func()
+            with redirect_stdout(stdout):
+                ret = await func()
         except Exception:
             value = stdout.getvalue()
             await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
