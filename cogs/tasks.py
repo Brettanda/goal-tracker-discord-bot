@@ -184,14 +184,11 @@ class TaskTracker(commands.Cog):
     def __init__(self, bot: AutoShardedBot):
         self.bot: AutoShardedBot = bot
 
-        self.views_loaded = False
-
     def __repr__(self) -> str:
         return f"<cogs.{self.__cog_name__}>"
 
     async def cog_load(self) -> None:
-        if not self.views_loaded:
-            self.views_loaded = True
+        if not self.bot.views_loaded:
             self.bot.add_view(TaskReminders())
 
     @cache()

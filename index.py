@@ -14,6 +14,7 @@ import asyncpg
 import discord
 import pytz
 from discord.ext import commands
+from topgg.webhook import WebhookManager
 
 import cogs
 import config
@@ -44,6 +45,7 @@ class AutoShardedBot(commands.AutoShardedBot):
     command_stats: Counter[str]
     socket_stats: Counter[str]
     gateway_handler: Any
+    topgg_webhook: WebhookManager
 
     def __init__(self, **kwargs):
         super().__init__(
@@ -57,6 +59,8 @@ class AutoShardedBot(commands.AutoShardedBot):
             chunk_guilds_at_startup=False,
             **kwargs
         )
+
+        self.views_loaded = False
 
         # shard_id: List[datetime.datetime]
         # shows the last attempted IDENTIFYs and RESUMEs
@@ -178,6 +182,25 @@ class AutoShardedBot(commands.AutoShardedBot):
             # else:
             #     log.info("ERROR sent")
 
+    async def get_or_fetch_member(self, guild: discord.Guild, member_id: int) -> Optional[discord.Member]:
+        member = guild.get_member(member_id)
+        if member is not None:
+            return member
+
+        shard: discord.ShardInfo = self.get_shard(guild.shard_id)   # type: ignore  # will never be None
+        if shard.is_ws_ratelimited():
+            try:
+                member = await guild.fetch_member(member_id)
+            except discord.HTTPException:
+                return None
+            else:
+                return member
+
+        members = await guild.query_members(limit=1, user_ids=[member_id], cache=True)
+        if not members:
+            return None
+        return members[0]
+
     @overload
     def get_timezone_name(self, *priorities: Optional[int]) -> str:
         ...
@@ -227,6 +250,7 @@ class AutoShardedBot(commands.AutoShardedBot):
     async def on_ready(self):
         if not hasattr(self, "uptime"):
             self.uptime = discord.utils.utcnow()
+        self.views_loaded = True
 
         log.info(f"Apart of {len(self.guilds)} guilds")
 
