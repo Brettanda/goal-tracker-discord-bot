@@ -34,3 +34,11 @@ python3.8 -m venv venv
 ```bash
 pip install -r requirements.txt
 ```
+
+## Privacy Policy
+
+No personal information is stored.
+
+## Terms of service
+
+Yeah
