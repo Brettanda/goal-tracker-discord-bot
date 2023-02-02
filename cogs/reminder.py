@@ -156,6 +156,8 @@ class ReminderConverter(commands.Converter, app_commands.Transformer):
 
 
 class Reminder(commands.Cog):
+    """Set reminders for yourself"""
+
     def __init__(self, bot: AutoShardedBot):
         self.bot: AutoShardedBot = bot
         self._have_data = asyncio.Event()

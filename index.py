@@ -31,6 +31,64 @@ if TYPE_CHECKING:
 log = logging.getLogger()
 
 
+class Translator(discord.app_commands.Translator):
+    # FIXME: This is a mess
+    async def translate(self, string: discord.app_commands.locale_str, locale: discord.Locale, ctx: discord.app_commands.TranslationContext) -> Optional[str]:
+        lang: str = locale.value.split("-")[0]
+        data = ctx.data
+        cog = getattr(data, "binding", None) or (getattr(data, "commands", None) and data.commands[0].binding) or (getattr(data, "command", None) and data.command.binding)
+        cog_name = cog.__class__.__name__.lower()
+        try:
+            trans = None
+            if ctx.location.name in ("command_name", "command_description"):
+                command_name = data.name.lower()
+                parent_name = data.parent and data.parent.name
+                lang_file: I18n = cog.bot.language_files
+                if parent_name is not None:
+                    c = lang_file[lang][cog_name][parent_name]["commands"][command_name]
+                    if ctx.location.name == "command_name":
+                        trans = c["command_name"].lower().replace(" ", "_")
+                    elif ctx.location.name == "command_description":
+                        trans = c["help"]
+                else:
+                    c = lang_file[lang][cog_name][command_name]
+                    if ctx.location.name == "command_name":
+                        trans = c["command_name"].lower().replace(" ", "_")
+                    elif ctx.location.name == "command_description":
+                        trans = c["help"]
+            elif ctx.location.name in ("group_name", "group_description"):
+                command_name = data.name.lower()
+                lang_file: I18n = cog.bot.language_files
+                c = lang_file[lang][cog_name][command_name]
+                if ctx.location.name == "group_name":
+                    trans = c["command_name"].lower().replace(" ", "_")
+                elif ctx.location.name == "group_description":
+                    trans = c[command_name]["help"]
+            elif ctx.location.name in ("parameter_name", "parameter_description"):
+                group_name = data.command.parent and data.command.parent.name
+                command_name = data.command.name.lower()
+                param_name = data.name.lower()
+                lang_file: I18n = cog.bot.language_files
+                if group_name is not None:
+                    c = lang_file[lang][cog_name][group_name]["commands"][command_name]["parameters"][param_name]
+                    if ctx.location.name == "parameter_name":
+                        trans = c["name"].lower().replace(" ", "_")
+                    elif ctx.location.name == "parameter_description":
+                        trans = c["description"]
+                else:
+                    p = lang_file[lang][cog_name][command_name]["parameters"][param_name]
+                    if ctx.location.name == "parameter_name":
+                        trans = p["name"].lower().replace(" ", "_")
+                    elif ctx.location.name == "parameter_description":
+                        trans = p["description"]
+            return trans if trans and trans != string.message else None
+        except KeyError:
+            return None
+        except TypeError as e:
+            log.error(e)
+            return None
+
+
 def get_prefix(bot: AutoShardedBot, message: discord.Message):
     if message.guild is not None:
         return commands.when_mentioned_or(bot.prefixes.get(message.guild.id, config.default_prefix))(bot, message)
@@ -80,10 +138,12 @@ class AutoShardedBot(commands.AutoShardedBot):
         self.pool = await Table.create_pool(config.postgresql)
 
         self.language_files: dict[str, I18n] = {  # type: ignore
-            "en": ReadOnly("i18n/source/main.json", loop=self.loop),
-            **{name: ReadOnly(f"i18n/translations/{name}/main.json", loop=self.loop)
-               for name in os.listdir("./i18n/translations")}
+            **{name: ReadOnly(f"i18n/locales/{name}/main.json", loop=self.loop)
+               for name in os.listdir("./i18n/locales")}
         }
+
+        await self.tree.set_translator(Translator())
+
         self.languages: Config[str] = Config("languages.json", loop=self.loop)
         self.prefixes: Config[str] = Config("prefixes.json", loop=self.loop)
         self.timezones: Config[str] = Config("timezones.json", loop=self.loop)

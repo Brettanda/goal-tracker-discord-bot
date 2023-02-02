@@ -8,4 +8,4 @@ psutil
 lru_dict
 pytimeparse
 discord-ext-menus @ git+https://github.com/Rapptz/discord-ext-menus@8686b5d1bbc1d3c862292eb436ab630d6e9c9b53
-discord.py @ git+https://github.com/Rapptz/discord.py@a8a6bf4f6c9d6cb71a23bf2079c410aeb1407a8b
+discord.py @ git+https://github.com/Rapptz/discord.py@4182496713f854ff3dc7a949de2a0e18de31c417
