@@ -5,7 +5,7 @@ import logging
 import sys
 from logging.handlers import RotatingFileHandler
 
-from discord.client import _ColourFormatter
+from discord.utils import _ColourFormatter
 
 try:
     import uvloop  # type: ignore
