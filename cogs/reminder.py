@@ -221,6 +221,7 @@ class Reminder(commands.Cog):
                     to_sleep = (timer.expires - now).total_seconds()
                     await asyncio.sleep(to_sleep)
                 await self.call_timer(timer)
+                await asyncio.sleep(0.1)
         except asyncio.CancelledError as e:
             raise e
         except (OSError, discord.ConnectionClosed, asyncpg.PostgresConnectionError):
