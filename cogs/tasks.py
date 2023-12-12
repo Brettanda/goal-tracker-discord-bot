@@ -17,6 +17,8 @@ from utils.embed import embed
 from utils.fuzzy import autocomplete
 from utils.time import ADT, NDT, NT, Interval, TimeOfDay, format_dt, human_timedelta
 
+from .goals import Goal, GoalConverter, GoalTracker
+
 if TYPE_CHECKING:
     from index import AutoShardedBot
     from utils.context import Context
@@ -31,6 +33,7 @@ class TasksTracked(Table):
     id = Column("id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY")
     user_id = Column("user_id bigint NOT NULL")
     created = Column("created timestamp NOT NULL DEFAULT (now() at time zone 'utc')")
+    goal = Column("goal bigint CONSTRAINT fk_goal FOREIGN KEY(goal) REFERENCES goalstracked(id) ON DELETE SET NULL")
     name = Column("name text NOT NULL")
     time = Column("time time NOT NULL DEFAULT (now() at time zone 'utc')")
     interval = Column("interval interval NOT NULL DEFAULT '1 day'")
@@ -77,7 +80,8 @@ class PaginatorSource(menus.ListPageSource):
             titles.append(f"{NUMTOEMOTES[x + 1]} {'~~' if g.completed else ''}{g.name}{'~~' if g.completed else ''} - {format_dt(g.next_reset(),'R')}")
             values.append(f"Repeats every {human_timedelta(now + g.interval, source=now)}\n"
                           f"Completed: {checks[g.completed]}\n"
-                          f"Time of reminder: {g.time}\n")
+                          f"Time of reminder: {g.time}\n"
+                          f"{'Goal: ' + str(g.goal) if g.goal else ''}")
 
         return embed(
             title="Your tasks",
@@ -105,13 +109,14 @@ class TaskReminders(discord.ui.View):
 
 
 class Task:
-    __slots__ = ("id", "user_id", "created", "name", "time", "interval", "reset_datetime", "completed", "remind_me", "last_reset",)
+    __slots__ = ("id", "user_id", "created", "name", "goal", "time", "interval", "reset_datetime", "completed", "remind_me", "last_reset",)
 
     def __init__(self, *, record: asyncpg.Record) -> None:
         self.id: int = record["id"]
         self.user_id: int = record["user_id"]
         self.created: NDT = record["created"]
         self.name: str = record["name"]
+        self.goal: Optional[int] = record["goal"]
         self.time: NT = record["time"]
         self.interval: datetime.timedelta = record["interval"]
         self.last_reset: NDT = record["last_reset"]
@@ -274,6 +279,7 @@ class TaskTracker(commands.Cog):
     @tasks.command(name="add")
     @app_commands.describe(
         resets_every="How often should this task remind you?",
+        goal="If setup, what goal is this apart of?",
         start_time="What time of day should this task begin?",
         task_name="What is your task?",
         remind_me="Should I remind you when this task is due?",
@@ -284,6 +290,7 @@ class TaskTracker(commands.Cog):
             resets_every: Interval,
             start_time: TimeOfDay = None,
             remind_me: bool = False,
+            goal: app_commands.Transform[Goal, GoalConverter] = None,
             *,
             task_name: str
     ):
@@ -295,7 +302,7 @@ class TaskTracker(commands.Cog):
         if reminder is None:
             return await ctx.send(ctx.lang["errors"]["missing_functionality"], ephemeral=True)
 
-        record = await ctx.db.fetchrow("INSERT INTO taskstracked (user_id, name, interval, last_reset, time, remind_me) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *", ctx.author.id, task_name, resets_every.interval, dt, dt.time(), remind_me)
+        record = await ctx.db.fetchrow("INSERT INTO taskstracked (user_id, name, interval, last_reset, time, remind_me, goal) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", ctx.author.id, task_name, resets_every.interval, dt, dt.time(), remind_me, goal)
         task = Task(record=record)
         await reminder.create_timer(task.next_reset(aware=True), "task_reset", ctx.author.id, task.id)
         self.get_tasks.invalidate(self, ctx.author.id)
@@ -308,7 +315,7 @@ class TaskTracker(commands.Cog):
         self.get_tasks.invalidate(self, ctx.author.id)
         await ctx.send(f"task `{task.name}` completed!")
 
-    @tasks.command(name="change", aliases=["modify"])
+    @tasks.command(name="modify", aliases=["change"])
     async def tasks_change(
         self,
         ctx: Context,
@@ -318,9 +325,10 @@ class TaskTracker(commands.Cog):
         remind_me: bool = None,
         completed: bool = None,
         task_name: str = None,
+        goal: app_commands.Transform[Goal, GoalConverter] = None
     ):
         """Change a task"""
-        if resets_every is None and start_time is None and remind_me is None and completed is None and task_name is None:
+        if resets_every is None and start_time is None and remind_me is None and completed is None and task_name is None and goal is None:
             await ctx.send("Nothing changed", ephemeral=True)
             return
 
@@ -344,6 +352,10 @@ class TaskTracker(commands.Cog):
             options.append(f"remind_me = ${x}")
             params.append(remind_me)
             x += 1
+        if goal is not None:
+            options.append(f"goal = ${x}")
+            params.append(goal and goal.id)
+            x += 1
         if task_name is not None:
             options.append(f"name = ${x}")
             params.append(task_name)
@@ -357,6 +369,9 @@ class TaskTracker(commands.Cog):
             task.id
         )
         self.get_tasks.invalidate(self, ctx.author.id)
+        goals: Optional[GoalTracker] = self.bot.get_cog("GoalTracker")  # type: ignore
+        if goals is not None:
+            goals.get_goals.invalidate(goals, ctx.author.id)
         await ctx.send(f"task `{task.name}` changed!", ephemeral=True)
 
     @tasks.command(name="delete", aliases=["remove"])
